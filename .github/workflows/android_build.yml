@@ -19,27 +19,26 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
-          # Removido cache para evitar erros de pasta inexistente
 
       - name: Instalando o Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          cache: true
 
-      - name: Criar Projeto e Baixar Dependências
+      - name: Forçar Criação do Ambiente Android
         run: |
-          cd mobile_app
-          flutter create . --platforms=android
+          # Procura a pasta mobile_app, se não achar, usa a raiz
+          [ -d "mobile_app" ] && cd mobile_app || echo "Usando raiz"
+          flutter create . --platforms=android --overwrite
           flutter pub get
 
-      - name: Construindo o APK
+      - name: Construindo o APK Oficial
         run: |
-          cd mobile_app
+          [ -d "mobile_app" ] && cd mobile_app || echo "Usando raiz"
           flutter build apk --release --no-tree-shake-icons
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
           name: merenda-fatec-android
-          path: mobile_app/build/app/outputs/flutter-apk/app-release.apk
+          path: "**/build/app/outputs/flutter-apk/app-release.apk"
