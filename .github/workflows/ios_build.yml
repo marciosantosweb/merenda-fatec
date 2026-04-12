@@ -1,0 +1,39 @@
+name: Gerar Build iOS Merenda
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # Permite rodar manualmente clicando num botão
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Instalar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          architecture: x64
+
+      - name: Instalar Dependências pod
+        run: |
+          cd ios
+          pod install
+        working-directory: mobile_app
+
+      - name: Baixar pacotes Flutter
+        run: flutter pub get
+        working-directory: mobile_app
+
+      - name: Gerar Build iOS (Não assinado)
+        run: flutter build ios --release --no-codesign
+        working-directory: mobile_app
+
+      - name: Comprimir e Disponibilizar
+        uses: actions/upload-artifact@v3
+        with:
+          name: Merenda-iOS-Build
+          path: mobile_app/build/ios/iphoneos/Runner.app

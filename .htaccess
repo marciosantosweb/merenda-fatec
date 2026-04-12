@@ -1,0 +1,8 @@
+RewriteEngine On
+
+# Não redirecionar arquivos ou pastas que já existem (como CSS, JS, Imagens e o install.php)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Redireciona tudo para public/index.php passando a URL como parâmetro
+RewriteRule ^(.*)$ public/index.php?url=$1 [QSA,L]
