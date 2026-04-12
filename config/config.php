@@ -5,7 +5,7 @@
  * P - Produção (Banco remoto)
  */
 
-define('ENV', 'T'); // Altere para 'P' em produção
+define('ENV', 'P'); // Altere para 'P' em produção
 
 if (ENV === 'T') {
     define('DB_HOST', 'localhost');
@@ -13,17 +13,17 @@ if (ENV === 'T') {
     define('DB_USER', 'root');
     define('DB_PASS', '');
 } else {
-    define('DB_HOST', 'seu_host_producao');
-    define('DB_NAME', 'seu_banco_producao');
-    define('DB_USER', 'seu_usuario_producao');
-    define('DB_PASS', 'sua_senha_producao');
+    define('DB_HOST', 'localhost');
+    define('DB_NAME', 'etecsaosebas_fatecmerenda');
+    define('DB_USER', 'etecsaosebas_merenda');
+    define('DB_PASS', 'cap%ih-gyMs*4-hoz&Ef');
 }
 
 // Configurações Globais
 if (ENV === 'P') {
-    define('BASE_URL', 'https://www.etecsaosebastiao.com.br/fatec/merenda/');
+    define('BASE_URL', 'https://www.etecsaosebastiao.com.br/fatec/merenda/public/');
 } else {
-    define('BASE_URL', 'http://localhost/MERENDA/');
+    define('BASE_URL', 'http://localhost/MERENDA/public/');
 }
 define('ADMIN_EMAIL_API', 'marcio.santos01@cps.sp.gov.br');
 

@@ -13,7 +13,7 @@ $calendar_event = $stmt->fetch();
 <nav class="navbar navbar-dark bg-dark">
     <div class="container d-flex justify-content-between align-items-center">
         <span class="navbar-brand fatec-title d-flex align-items-center">
-            <img src="<?= BASE_URL ?>public/img/logotipo.png" height="35" class="me-2" style="filter: brightness(0) invert(1);" alt="Logo">
+            <img src="<?= BASE_URL ?>img/logotipo.png" height="35" class="me-2" style="filter: brightness(0) invert(1);" alt="Logo">
             PAINEL COZINHA
         </span>
         <div class="d-flex align-items-center gap-4">

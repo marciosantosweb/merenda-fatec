@@ -10,7 +10,16 @@ class Database {
 
     public static function getConnection() {
         if (self::$instance === null) {
-            require_once __DIR__ . '/../../config/config.php';
+            // Se já definimos ROOT_PATH no index.php, usamos ele.
+            // Senão, tentamos localizar aqui por perto.
+            if (!defined('ROOT_PATH')) {
+                if (file_exists(__DIR__ . '/../../config/config.php')) {
+                    define('ROOT_PATH', __DIR__ . '/../../');
+                } else {
+                    define('ROOT_PATH', __DIR__ . '/');
+                }
+            }
+            require_once ROOT_PATH . 'config/config.php';
             
             try {
                 $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";

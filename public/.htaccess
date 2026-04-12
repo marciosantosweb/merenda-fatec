@@ -1,0 +1,16 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Caso o sistema esteja em /fatec/merenda/, definimos a base
+    RewriteBase /fatec/merenda/
+
+    # Ignorar arquivos físicos (imagens, css, js) existentes
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Mandar tudo o que sobrar para o index.php
+    RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+</IfModule>
+
+# Impedir listagem de diretórios por segurança
+Options -Indexes

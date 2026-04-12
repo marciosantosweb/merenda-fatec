@@ -1,82 +1,102 @@
 <?php
-require_once __DIR__ . '/../config/config.php';
-require_once __DIR__ . '/../app/Core/Database.php';
+/**
+ * Roteador Ultra-Robusto - MERENDA FATEC
+ */
 
-// Router inteligente
-$url = isset($_GET['url']) ? $_GET['url'] : 'login';
-$parts = explode('/', rtrim($url, '/'));
-$page = $parts[0];
+// 1. DIAGNÓSTICO ATIVADO
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+// Detecção Dinâmica de Raiz
+$scriptPath = dirname(__FILE__);
+if (file_exists($scriptPath . '/config/config.php')) {
+    $root = $scriptPath . '/';
+} else if (file_exists($scriptPath . '/../config/config.php')) {
+    $root = $scriptPath . '/../';
+} else {
+    $root = $scriptPath . '/'; // Fallback
+}
+define('ROOT_PATH', $root);
+
+require_once ROOT_PATH . 'config/config.php';
+require_once ROOT_PATH . 'app/Core/Database.php';
+
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+// 2. ROTEAMENTO
+$url = isset($_GET['url']) ? $_GET['url'] : '';
+$url = strtok($url, '?');
+$parts = explode('/', trim($url, '/'));
+$page = $parts[0] ?? 'login';
 $subpage = $parts[1] ?? '';
 
-// Cabeçalho Comum
+// --- INTERCEPTAÇÃO DE ACESSO ---
+if ($page === 'auth' && $subpage === 'callback') {
+    // Tenta 3 lugares diferentes para achar o arquivo de autenticação
+    $locations = [
+        ROOT_PATH . 'auth/callback.php',
+        dirname(__FILE__) . '/../auth/callback.php',
+        dirname(__FILE__) . '/auth/callback.php'
+    ];
+    
+    $found = false;
+    foreach ($locations as $loc) {
+        if (file_exists($loc)) {
+            include $loc;
+            $found = true;
+            break;
+        }
+    }
+    
+    if (!$found) {
+        die("<h1>🚨 Erro de Estrutura:</h1> Não encontramos o arquivo de autenticação em nenhuma das pastas esperadas.<br>Por favor, garanta que a pasta <b>auth</b> foi subida para o servidor.");
+    }
+    exit;
+}
+
+// Redirecionamento se já logado
+if (isset($_SESSION['user_id']) && ($page === 'login' || empty($page))) {
+    $target = ($_SESSION['user_role'] === 'admin') ? 'administrador' : 'cozinha';
+    header("Location: " . BASE_URL . $target);
+    exit;
+}
+
+if ($page === 'sair') {
+    session_destroy();
+    header("Location: " . BASE_URL);
+    exit;
+}
+
+// 3. ASSETS
+$assetsBase = BASE_URL;
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MERENDA - Fatec São Sebastião</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=Raleway:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="<?= BASE_URL ?>public/css/style.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>css/style.css?v=<?= time() ?>">
 </head>
-<body>
+<body class="bg-light">
 
 <?php
-// Lógica de Views
+// 4. VIEWS
 switch ($page) {
-    case 'login':
-    case 'home':
-    case '':
-        include __DIR__ . '/../views/login.php';
-        break;
-    
+    case 'login': include ROOT_PATH . 'views/login.php'; break;
+    case 'cozinha': include ROOT_PATH . 'views/cozinha_dashboard.php'; break;
     case 'administrador':
-        // Sub-roteamento Administrativo
         if (empty($subpage)) {
-            include __DIR__ . '/../views/admin_dashboard.php';
+            include ROOT_PATH . 'views/admin_dashboard.php';
         } else {
-            $viewPath = __DIR__ . "/../views/admin_{$subpage}.php";
-            if (file_exists($viewPath)) {
-                include $viewPath;
-            } else {
-                echo "<div class='container py-5 text-center'><h1>404</h1><p>Página '{$subpage}' não encontrada.</p></div>";
-            }
+            include ROOT_PATH . "views/admin_{$subpage}.php";
         }
         break;
-
-    case 'cozinha':
-        include __DIR__ . '/../views/cozinha_dashboard.php';
-        break;
-
-    case 'sair':
-        include __DIR__ . '/logout.php';
-        break;
-
-    case 'aplicativo':
-        include __DIR__ . '/../views/app_mobile.php';
-        break;
-
-    case 'post_login_cozinha.php':
-        include __DIR__ . '/post_login_cozinha.php';
-        break;
-
-    case 'auth':
-        if ($subpage === 'callback') {
-            include __DIR__ . '/auth/callback.php';
-        }
-        break;
-
-    default:
-        echo "<div class='container py-5 text-center'><h1>404</h1><p>Caminho não encontrado.</p></div>";
-        break;
+    default: include ROOT_PATH . 'views/login.php'; break;
 }
 ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="<?= BASE_URL ?>public/js/main.js"></script>
+    <script src="<?= BASE_URL ?>js/main.js"></script>
 </body>
 </html>

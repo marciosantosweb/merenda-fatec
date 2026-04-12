@@ -2,41 +2,50 @@ name: Gerar Build Android Merenda
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
+    name: Ativando robô Android
     runs-on: ubuntu-latest
-
+    
     steps:
-      - uses: actions/checkout@v4
+      - name: Baixando o Código
+        uses: actions/checkout@v4
 
-      - name: Instalar Java
+      - name: Configurando o Java (Motor do Android)
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
+          cache: 'gradle'
 
-      - name: Instalar Flutter
+      - name: Instalando o Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: 'latest'
           channel: 'stable'
+          cache: true
 
-      - name: Gerar Pastas Nativas
-        run: flutter create --platforms=android .
-        working-directory: mobile_app
+      - name: Criando pastas faltantes (Se necessário)
+        run: |
+          cd mobile_app
+          flutter create . --platforms=android,ios
+        
+      - name: Baixando dependências do App
+        run: |
+          cd mobile_app
+          flutter pub get
 
-      - name: Baixar pacotes Flutter
-        run: flutter pub get
-        working-directory: mobile_app
+      - name: Construindo o APK (Instalador Android)
+        run: |
+          cd mobile_app
+          flutter build apk --release --no-tree-shake-icons
 
-      - name: Gerar APK (Versão de Teste)
-        run: flutter build apk --release
-        working-directory: mobile_app
-
-      - name: Disponibilizar APK
+      - name: Disponibilizar APK para Download
         uses: actions/upload-artifact@v4
         with:
-          name: Merenda-Android-APK
+          name: merenda-fatec-android
           path: mobile_app/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
