@@ -18,10 +18,8 @@ jobs:
           channel: 'stable'
           architecture: x64
 
-      - name: Instalar Dependências pod
-        run: |
-          cd ios
-          pod install
+      - name: Gerar Pastas Nativas (Shadow Create)
+        run: flutter create --platforms=ios,android .
         working-directory: mobile_app
 
       - name: Baixar pacotes Flutter
