@@ -14,38 +14,32 @@ jobs:
       - name: Baixando o Código
         uses: actions/checkout@v4
 
-      - name: Configurando o Java (Motor do Android)
+      - name: Configurando o Java
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
-          cache: 'gradle'
+          # Removido cache para evitar erros de pasta inexistente
 
       - name: Instalando o Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'latest'
           channel: 'stable'
           cache: true
 
-      - name: Criando pastas faltantes (Se necessário)
+      - name: Criar Projeto e Baixar Dependências
         run: |
           cd mobile_app
-          flutter create . --platforms=android,ios
-        
-      - name: Baixando dependências do App
-        run: |
-          cd mobile_app
+          flutter create . --platforms=android
           flutter pub get
 
-      - name: Construindo o APK (Instalador Android)
+      - name: Construindo o APK
         run: |
           cd mobile_app
           flutter build apk --release --no-tree-shake-icons
 
-      - name: Disponibilizar APK para Download
+      - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
           name: merenda-fatec-android
           path: mobile_app/build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 7
