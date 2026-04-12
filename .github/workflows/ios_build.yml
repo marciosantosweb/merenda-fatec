@@ -34,7 +34,7 @@ jobs:
         working-directory: mobile_app
 
       - name: Comprimir e Disponibilizar
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Merenda-iOS-Build
           path: mobile_app/build/ios/iphoneos/Runner.app
