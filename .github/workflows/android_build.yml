@@ -1,0 +1,42 @@
+name: Gerar Build Android Merenda
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Instalar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Gerar Pastas Nativas
+        run: flutter create --platforms=android .
+        working-directory: mobile_app
+
+      - name: Baixar pacotes Flutter
+        run: flutter pub get
+        working-directory: mobile_app
+
+      - name: Gerar APK (Versão de Teste)
+        run: flutter build apk --release
+        working-directory: mobile_app
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Merenda-Android-APK
+          path: mobile_app/build/app/outputs/flutter-apk/app-release.apk
