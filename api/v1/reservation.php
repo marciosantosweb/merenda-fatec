@@ -2,6 +2,13 @@
 /**
  * API v1 - Realizar Reserva
  */
+
+if (!defined('ROOT_PATH')) {
+    define('ROOT_PATH', dirname(__FILE__) . '/../../');
+}
+require_once ROOT_PATH . 'config/config.php';
+require_once ROOT_PATH . 'app/Core/Database.php';
+
 use App\Core\Database;
 
 header('Content-Type: application/json');
