@@ -27,6 +27,17 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime? _startTime;
   DateTime? _endTime;
   bool _hasReservation = false;
+  int _repetitions = 0;
+
+  String _getFormattedDate() {
+    final now = DateTime.now();
+    final List<String> weekdays = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
+    final weekday = weekdays[now.weekday - 1];
+    final day = now.day.toString().padLeft(2, '0');
+    final month = now.month.toString().padLeft(2, '0');
+    final year = now.year.toString();
+    return "$day/$month/$year - $weekday";
+  }
 
   @override
   void initState() {
@@ -134,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _canReserve = false;
       _statusMessage = "Processando...";
     });
-    final res = await _apiService.makeReservation(widget.user['id'], 1);
+    final res = await _apiService.makeReservation(widget.user['id'], _repetitions);
     if (!mounted) return;
     if (res['success'] == true) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reserva confirmada!'), backgroundColor: Colors.green));
@@ -310,6 +321,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _getFormattedDate(),
+                          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Colors.grey[600]),
+                        ),
                         const SizedBox(height: 15),
                         Container(
                           width: double.infinity,
@@ -337,7 +353,50 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 35),
+
+                  // ── Quantidade de Repetições ─────────────────────────────────────
+                  if (_canReserve && DateTime.now().weekday != DateTime.saturday && DateTime.now().weekday != DateTime.sunday)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Pensa em repetir a janta?",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF666666)),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            for (int i = 0; i <= 2; i++)
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () => setState(() => _repetitions = i),
+                                  child: Container(
+                                    margin: EdgeInsets.only(right: i < 2 ? 10 : 0),
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: _repetitions == i ? const Color(0xFFB50D11) : Colors.grey[100],
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: _repetitions == i ? const Color(0xFFB50D11) : Colors.grey[300]!),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        i == 0 ? "Não" : "+$i prato${i>1?'s':''}",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: _repetitions == i ? Colors.white : Colors.grey[700],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 30),
+                      ],
+                    ),
 
                   // Botão de Reserva
                   Container(
