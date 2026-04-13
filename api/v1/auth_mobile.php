@@ -7,6 +7,7 @@
  * Verifica o status do usuário no banco de dados
  * Retorna dados do usuário em JSON
  */
+use App\Core\Database;
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -31,8 +32,6 @@ if (!defined('ROOT_PATH')) {
 }
 require_once ROOT_PATH . 'config/config.php';
 require_once ROOT_PATH . 'app/Core/Database.php';
-
-use App\Core\Database;
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse(['success' => false, 'message' => 'Método não permitido'], 405);
