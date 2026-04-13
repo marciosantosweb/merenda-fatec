@@ -133,10 +133,11 @@ class _LoginScreenState extends State<LoginScreen>
                       border: Border.all(color: Colors.white12, width: 1),
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
                           'Bem-vindo!',
+                          textAlign: TextAlign.center,
                           style: GoogleFonts.inter(
                             color: Colors.white,
                             fontSize: 22,
@@ -146,6 +147,7 @@ class _LoginScreenState extends State<LoginScreen>
                         const SizedBox(height: 6),
                         Text(
                           'Faça login com sua conta Fatec para continuar.',
+                          textAlign: TextAlign.center,
                           style: GoogleFonts.inter(
                             color: Colors.white54,
                             fontSize: 14,
