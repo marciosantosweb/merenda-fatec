@@ -29,6 +29,14 @@ jobs:
         working-directory: mobile_app
         run: dart run flutter_launcher_icons
 
+      - name: Injetar URL Scheme no Info.plist
+        working-directory: mobile_app
+        run: |
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes array" ios/Runner/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0 dict" ios/Runner/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" ios/Runner/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string msauth.com.rango.fatec" ios/Runner/Info.plist
+
       - name: Construindo o App iOS (Simulador)
         working-directory: mobile_app
         run: flutter build ios --simulator --no-tree-shake-icons

@@ -35,6 +35,11 @@ jobs:
         working-directory: mobile_app
         run: dart run flutter_launcher_icons
 
+      - name: Injetar URL Scheme no AndroidManifest
+        working-directory: mobile_app
+        run: |
+          sed -i 's|</activity>|  <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="msauth.com.rango.fatec" />\n            </intent-filter>\n        </activity>|' android/app/src/main/AndroidManifest.xml
+
       - name: Construindo o APK Oficial
         working-directory: mobile_app
         run: flutter build apk --release --no-tree-shake-icons
