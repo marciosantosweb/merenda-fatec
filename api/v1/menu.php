@@ -9,6 +9,15 @@ if (!defined('ROOT_PATH')) {
 require_once ROOT_PATH . 'config/config.php';
 require_once ROOT_PATH . 'app/Core/Database.php';
 
+if (!function_exists('jsonResponse')) {
+    function jsonResponse($data, $status = 200) {
+        header('Content-Type: application/json');
+        http_response_code($status);
+        echo json_encode($data);
+        exit;
+    }
+}
+
 use App\Core\Database;
 
 $db = Database::getConnection();
