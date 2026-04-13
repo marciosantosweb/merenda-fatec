@@ -22,7 +22,7 @@ jobs:
       - name: Configurando o Ambiente iOS
         working-directory: mobile_app
         run: |
-          flutter create . --platforms=ios
+          flutter create . --platforms=android,ios
           flutter pub get
 
       - name: Gerando Ícone do App
