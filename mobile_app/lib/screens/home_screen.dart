@@ -153,10 +153,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(20),
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(15),
-                            border: Border(left: BorderSide(color: Color(0xFFB50D11), width: 5)),
+                            border: const Border(left: BorderSide(color: Color(0xFFB50D11), width: 5)),
                           ),
                           child: const Text(
                             "Arroz, Feijão, Proteína e Salada",
