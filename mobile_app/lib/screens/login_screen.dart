@@ -89,41 +89,27 @@ class _LoginScreenState extends State<LoginScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 60),
-
-                  // ── Logo Fatec ──────────────────────────────────
-                  Image.asset(
-                    'assets/images/logo-fatec.png',
-                    height: 45,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.school,
-                      color: Colors.white54,
-                      size: 45,
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-                  Container(
-                    height: 1,
-                    color: Colors.white12,
-                  ),
-
                   const SizedBox(height: 40),
 
-                  // ── Logo Rango ──────────────────────────────────
-                  Image.asset(
-                    'assets/images/logo-rango.png',
-                    height: 130,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.restaurant_menu,
-                      color: Color(0xFFB50D11),
-                      size: 100,
+                  // ─── Logo Rango (dark bg) ─────────────────────────
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        'assets/images/logo-rango-login.png',
+                        width: double.infinity,
+                        fit: BoxFit.fitWidth,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.restaurant_menu,
+                          color: Color(0xFFB50D11),
+                          size: 100,
+                        ),
+                      ),
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
 
                   // ── Tagline ────────────────────────────────────
                   Text(

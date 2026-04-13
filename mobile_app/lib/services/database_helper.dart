@@ -1,6 +1,17 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
+/// Gerenciador do banco de dados local SQLite.
+///
+/// IMPORTANTE — Segurança de dados ao desinstalar:
+/// O banco de dados é armazenado no diretório privado do app:
+///   • Android: /data/data/<package>/databases/merenda_auth.db
+///   • iOS:     <app_sandbox>/Documents/merenda_auth.db
+///
+/// Em ambas as plataformas, o Android e o iOS APAGAM automaticamente
+/// toda a pasta privada do app ao desinstalar, incluindo este arquivo.
+/// Não há necessidade de limpeza manual — nenhum dado de login persiste
+/// após a desinstalação do Rango!
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   factory DatabaseHelper() => _instance;
@@ -15,6 +26,8 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
+    // getDatabasesPath() retorna o diretório privado do app —
+    // apagado automaticamente pelo sistema ao desinstalar.
     String path = join(await getDatabasesPath(), 'merenda_auth.db');
     return await openDatabase(
       path,
@@ -37,24 +50,21 @@ class DatabaseHelper {
     ''');
   }
 
-  // Salvar sessão do usuário
+  /// Salva sessão do usuário (substitui qualquer sessão anterior)
   Future<void> saveSession(Map<String, dynamic> session) async {
     final db = await database;
-    await db.delete('user_session'); // Limpa sessões anteriores
+    await db.delete('user_session');
     await db.insert('user_session', session);
   }
 
-  // Buscar sessão ativa
+  /// Retorna a sessão salva, ou null se não houver
   Future<Map<String, dynamic>?> getSession() async {
     final db = await database;
-    List<Map<String, dynamic>> maps = await db.query('user_session');
-    if (maps.isNotEmpty) {
-      return maps.first;
-    }
-    return null;
+    final maps = await db.query('user_session');
+    return maps.isNotEmpty ? maps.first : null;
   }
 
-  // Logout
+  /// Remove a sessão (logout manual ou expiração)
   Future<void> clearSession() async {
     final db = await database;
     await db.delete('user_session');

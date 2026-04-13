@@ -37,7 +37,26 @@ class ApiService {
 
   // Buscar Configurações (Horários)
   Future<Map<String, dynamic>> getSettings() async {
-    final response = await http.get(Uri.parse('$baseUrl/v1/settings.php'));
-    return json.decode(response.body);
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/v1/settings.php'));
+      return json.decode(response.body);
+    } catch (e) {
+      return {'status': 'error'};
+    }
+  }
+
+  // Buscar status da reserva do dia
+  Future<Map<String, dynamic>> getReservationStatus(int userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/v1/reservation.php?user_id=$userId')
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+      return {'success': false};
+    } catch (e) {
+      return {'success': false};
+    }
   }
 }

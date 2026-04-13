@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import 'package:intl/intl.dart';
@@ -13,16 +14,66 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final ApiService _apiService = ApiService();
   String _timeRemaining = "--:--:--";
-  String _statusMessage = "Aguarde...";
+  String _statusMessage = "Carregando...";
   Color _statusColor = Colors.grey;
   bool _canReserve = false;
   Timer? _timer;
+  String _appVersion = '';
+
+  bool _isLoadingData = true;
+  String _menuDescription = "Buscando cardápio...";
+  DateTime? _startTime;
+  DateTime? _endTime;
+  bool _hasReservation = false;
 
   @override
   void initState() {
     super.initState();
+    _loadVersion();
+    _loadApiData();
     _startTimer();
+  }
+
+  Future<void> _loadVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    if (mounted) setState(() => _appVersion = info.version);
+  }
+
+  Future<void> _loadApiData() async {
+    setState(() { _isLoadingData = true; });
+
+    final menuRes = await _apiService.getTodayMenu();
+    if (menuRes['status'] == 'success') {
+      _menuDescription = menuRes['menu'] ?? 'Cardápio não informado';
+    } else {
+      _menuDescription = menuRes['message'] ?? 'Hoje não haverá merenda.';
+    }
+
+    final settingsRes = await _apiService.getSettings();
+    if (settingsRes['status'] == 'success' && settingsRes['data'] != null) {
+      final window = settingsRes['data']['reservation_window'];
+      final now = DateTime.now();
+      try {
+        final startParts = window['start'].split(':');
+        final endParts = window['end'].split(':');
+        _startTime = DateTime(now.year, now.month, now.day, int.parse(startParts[0]), int.parse(startParts[1]));
+        _endTime = DateTime(now.year, now.month, now.day, int.parse(endParts[0]), int.parse(endParts[1]));
+      } catch (e) {
+        // ignore fallback
+      }
+    }
+
+    final resStatus = await _apiService.getReservationStatus(widget.user['id']);
+    if (resStatus['success'] == true) {
+      _hasReservation = resStatus['has_reservation'] == true;
+    }
+
+    if (mounted) {
+      setState(() { _isLoadingData = false; });
+      _updateStatus();
+    }
   }
 
   void _startTimer() {
@@ -32,10 +83,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _updateStatus() {
+    if (_isLoadingData) return;
+
     final now = DateTime.now();
-    // Exemplo de horários (Na vida real viria da API)
-    final startTime = DateTime(now.year, now.month, now.day, 18, 0);
-    final endTime = DateTime(now.year, now.month, now.day, 19, 30);
+    final start = _startTime ?? DateTime(now.year, now.month, now.day, 18, 0);
+    final end = _endTime ?? DateTime(now.year, now.month, now.day, 19, 30);
 
     setState(() {
       if (now.weekday == DateTime.saturday || now.weekday == DateTime.sunday) {
@@ -43,12 +95,17 @@ class _HomeScreenState extends State<HomeScreen> {
         _statusColor = Colors.blueGrey;
         _canReserve = false;
         _timeRemaining = "--:--";
-      } else if (now.isBefore(startTime)) {
+      } else if (_hasReservation) {
+        _statusMessage = "JANTA CONFIRMADA";
+        _statusColor = Colors.green[700]!;
+        _canReserve = false;
+        _timeRemaining = "Bom apetite!";
+      } else if (now.isBefore(start)) {
         _statusMessage = "AGUARDANDO ABERTURA";
         _statusColor = Colors.orange;
         _canReserve = false;
-        _timeRemaining = "Abre às 18:00";
-      } else if (now.isAfter(endTime)) {
+        _timeRemaining = "Abre às \${start.hour.toString().padLeft(2, '0')}:\${start.minute.toString().padLeft(2, '0')}";
+      } else if (now.isAfter(end)) {
         _statusMessage = "JANELA ENCERRADA";
         _statusColor = Colors.red;
         _canReserve = false;
@@ -58,17 +115,34 @@ class _HomeScreenState extends State<HomeScreen> {
         _statusColor = Colors.green;
         _canReserve = true;
         
-        final diff = endTime.difference(now);
+        final diff = end.difference(now);
         _timeRemaining = _printDuration(diff);
       }
     });
   }
 
   String _printDuration(Duration duration) {
+    if (duration.isNegative) return "00:00:00";
     String twoDigits(int n) => n.toString().padLeft(2, "0");
     String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
     String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+    return "\${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+  }
+
+  Future<void> _makeReservation() async {
+    setState(() {
+      _canReserve = false;
+      _statusMessage = "Processando...";
+    });
+    final res = await _apiService.makeReservation(widget.user['id'], 1);
+    if (!mounted) return;
+    if (res['success'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reserva confirmada!'), backgroundColor: Colors.green));
+      _loadApiData();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Erro ao confirmar de reserva.'), backgroundColor: Colors.red));
+      setState(() { _canReserve = true; });
+    }
   }
 
   @override
@@ -248,15 +322,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 5, offset: const Offset(2, 2))
                             ],
                           ),
-                          child: const Row(
+                          child: Row(
                             children: [
                               Expanded(
-                                child: Text(
-                                  "Arroz, Feijão, Proteína e Salada",
-                                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Color(0xFF4A4A4A)),
+                                child: _isLoadingData ? const LinearProgressIndicator(color: Color(0xFFB50D11)) : Text(
+                                  _menuDescription,
+                                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Color(0xFF4A4A4A)),
                                 ),
                               ),
-                              Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+                              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
                             ],
                           ),
                         ),
@@ -276,7 +350,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         : [],
                     ),
                     child: ElevatedButton(
-                      onPressed: _canReserve ? () {} : null,
+                      onPressed: _canReserve ? _makeReservation : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFB50D11),
                         foregroundColor: Colors.white,
@@ -298,6 +372,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 30),
+
+                  // ── Rodapé ─────────────────────────────────────
+                  Text(
+                    _appVersion.isNotEmpty ? 'v$_appVersion' : '',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFFCCCCCC),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Desenvolvido por NTI Etec São Sebastião\nProf. Marcio Santos',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFFCCCCCC),
+                      height: 1.6,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),

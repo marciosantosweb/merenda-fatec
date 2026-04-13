@@ -37,6 +37,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'message' => 'Erro no banco: ' . $e->getMessage()]);
     }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $userId = $_GET['user_id'] ?? null;
+    $today = date('Y-m-d');
+
+    if (!$userId) {
+        echo json_encode(['success' => false, 'message' => 'Usuário inválido']);
+        exit;
+    }
+
+    $db = Database::getConnection();
+
+    try {
+        $stmt = $db->prepare("SELECT repetitions FROM reservations WHERE user_id = ? AND date = ?");
+        $stmt->execute([$userId, $today]);
+        $res = $stmt->fetch();
+
+        if ($res) {
+            echo json_encode([
+                'success' => true,
+                'has_reservation' => true,
+                'repetitions' => $res['repetitions']
+            ]);
+        } else {
+            echo json_encode([
+                'success' => true,
+                'has_reservation' => false
+            ]);
+        }
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => 'Erro no banco: ' . $e->getMessage()]);
+    }
 } else {
     echo json_encode(['success' => false, 'message' => 'Método não permitido']);
 }
