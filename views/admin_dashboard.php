@@ -82,8 +82,9 @@ $menuText = $menuToday ? $menuToday['description'] : '';
                     </div>
                 </div>
             </div>
-        <        <!-- ================= Configurações principais ================= -->
-        
+        </div>
+
+        <!-- ================= Configurações principais ================= -->
         <!-- COLUNA 1: Calendário e Bloqueios -->
         <div class="col-lg-4" id="calendario">
             <div class="card card-fatec mb-4">
