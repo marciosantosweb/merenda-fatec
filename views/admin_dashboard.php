@@ -82,121 +82,140 @@ $menuText = $menuToday ? $menuToday['description'] : '';
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Configurações principais -->
-        <div class="col-lg-6" id="calendario">
+        <        <!-- ================= Configurações principais ================= -->
+        
+        <!-- COLUNA 1: Calendário e Bloqueios -->
+        <div class="col-lg-4" id="calendario">
             <div class="card card-fatec mb-4">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="fas fa-calendar-alt text-danger me-2"></i> Calendário Acadêmico</h5>
-                    <button class="btn btn-sm btn-outline-fatec">Substituir Arquivo</button>
                 </div>
                 <div class="card-body">
                     <p class="small text-muted">A IA processará o PDF para sugerir bloqueios automáticos.</p>
-                    <div class="border border-2 border-dashed rounded p-4 text-center mb-3">
-                        <i class="fas fa-file-pdf fs-2 text-danger mb-2"></i>
-                        <h6>Calendário_2026_Fatec.pdf</h6>
-                        <span class="badge bg-success">Processado com Sucesso</span>
+                    <div class="border border-2 border-dashed rounded p-4 text-center mb-3 bg-light">
+                        <i class="fas fa-file-pdf fs-1 text-danger mb-2"></i>
+                        <h6>Calendário_2026.pdf</h6>
+                        <span class="badge bg-success mt-1"><i class="fas fa-check-circle"></i> Processado</span>
                     </div>
+                    <button class="btn btn-sm btn-outline-fatec w-100"><i class="fas fa-upload me-2"></i> Substituir Arquivo</button>
                 </div>
             </div>
             
             <!-- Inserção Manual de Dias Não Letivos -->
             <div class="card card-fatec mb-4">
                 <div class="card-header bg-white py-3">
-                    <h5 class="mb-0"><i class="fas fa-plus-circle text-danger me-2"></i> Adicionar Dia Não Letivo</h5>
+                    <h5 class="mb-0"><i class="fas fa-calendar-times text-danger me-2"></i> Adicionar Dia Não Letivo</h5>
                 </div>
                 <div class="card-body">
-                    <form class="row g-2">
-                        <div class="col-md-5">
+                    <form class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-muted mb-1">Data</label>
                             <input type="date" class="form-control" name="data_bloqueio">
                         </div>
-                        <div class="col-md-5">
-                            <input type="text" class="form-control" placeholder="Motivo (ex: Emenda)">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-muted mb-1">Motivo / Descrição</label>
+                            <input type="text" class="form-control" placeholder="ex: Emenda de Feriado">
                         </div>
-                        <div class="col-md-2">
-                            <button class="btn btn-fatec w-100"><i class="fas fa-save"></i></button>
+                        <div class="col-12 mt-4">
+                            <button class="btn btn-fatec w-100"><i class="fas fa-plus-circle me-2"></i> ADICIONAR BLOQUEIO</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-6">
-            <div class="card card-fatec mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0"><i class="fas fa-ban text-danger me-2"></i> Dias Sem Janta (Bloqueados)</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                        <table class="table table-hover mb-0">
-                            <thead class="bg-light sticky-top">
-                                <tr>
-                                    <th>Data</th>
-                                    <th>Descrição</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>21/04/2026</td>
-                                    <td>Tiradentes (Feriado)</td>
-                                    <td><button class="btn btn-sm text-danger"><i class="fas fa-trash"></i></button></td>
-                                </tr>
-                                <tr>
-                                    <td>22/04/2026</td>
-                                    <td>Emenda de Feriado</td>
-                                    <td><button class="btn btn-sm text-danger"><i class="fas fa-trash"></i></button></td>
-                                </tr>
-                                <!-- Outras datas seriam carregadas aqui do banco de dados -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <!-- COLUNA 2: Cardápio e Parâmetros -->
         <div class="col-lg-4" id="configuracoes">
-            <div class="card card-fatec mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0"><i class="fas fa-tools text-danger me-2"></i> Parâmetros Sistema</h5>
-                </div>
-                <div class="card-body">
-                    <form action="<?= BASE_URL ?>post_save_settings.php" method="POST">
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Expiração Login (Dias)</label>
-                            <input type="number" class="form-control" name="expiration" value="<?= htmlspecialchars($expiration) ?>">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Início Janela Reserva</label>
-                            <input type="time" class="form-control" name="start_time" value="<?= htmlspecialchars($start_time) ?>">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Fim Janela Reserva</label>
-                            <input type="time" class="form-control" name="end_time" value="<?= htmlspecialchars($end_time) ?>">
-                        </div>
-                        <button type="submit" class="btn btn-fatec w-100">Salvar Configurações</button>
-                    </form>
-                </div>
-            </div>
-
             <!-- Cardápio do Dia -->
-            <div class="card card-fatec mb-4">
+            <div class="card card-fatec mb-4 border-danger border-opacity-50">
                 <div class="card-header bg-white py-3">
                     <h5 class="mb-0"><i class="fas fa-utensils text-danger me-2"></i> Cardápio do Dia</h5>
                 </div>
                 <div class="card-body">
                     <?php if (date('N') >= 6): ?>
-                        <div class="alert alert-warning py-2 small mb-0">Fim de semana, não há cardápio.</div>
+                        <div class="alert alert-warning py-3 text-center mb-0">
+                            <i class="fas fa-glass-cheers fs-4 d-block mb-2 text-warning"></i>
+                            <strong>Fim de semana</strong><br>Não há cardápio.
+                        </div>
                     <?php else: ?>
                         <form action="<?= BASE_URL ?>post_save_menu.php" method="POST">
                             <div class="mb-3">
-                                <label class="form-label small fw-bold">O que teremos hoje?</label>
-                                <textarea class="form-control" name="menu_description" rows="3" placeholder="Ex: Arroz, feijão, frango e salada."><?= htmlspecialchars($menuText) ?></textarea>
+                                <label class="form-label small fw-bold text-muted mb-2">O que teremos hoje?</label>
+                                <textarea class="form-control border-danger border-opacity-25 bg-light" name="menu_description" rows="4" placeholder="Ex: Arroz, feijão, frango e salada."><?= htmlspecialchars($menuText) ?></textarea>
                             </div>
-                            <button type="submit" class="btn btn-dark w-100">Salvar Cardápio</button>
+                            <button type="submit" class="btn btn-dark w-100"><i class="fas fa-save me-2"></i> SALVAR CARDÁPIO</button>
                         </form>
                     <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Parâmetros Sistema -->
+            <div class="card card-fatec mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-cogs text-danger me-2"></i> Parâmetros Sistema</h5>
+                </div>
+                <div class="card-body">
+                    <form action="<?= BASE_URL ?>post_save_settings.php" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Expiração Login (Dias)</label>
+                            <input type="number" class="form-control" name="expiration" value="<?= htmlspecialchars((string)$expiration) ?>">
+                        </div>
+                        <div class="row g-2 mb-4">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-muted">Início Janela</label>
+                                <input type="time" class="form-control" name="start_time" value="<?= htmlspecialchars($start_time) ?>">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-muted">Fim Janela</label>
+                                <input type="time" class="form-control" name="end_time" value="<?= htmlspecialchars($end_time) ?>">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-outline-fade text-dark border-secondary w-100"><i class="fas fa-save me-2"></i> ATUALIZAR REGRAS</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUNA 3: Dias Bloqueados Tabela -->
+        <div class="col-lg-4">
+            <div class="card card-fatec mb-4 h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <?php
+                    $meses = [
+                        '01' => 'JANEIRO', '02' => 'FEVEREIRO', '03' => 'MARÇO',
+                        '04' => 'ABRIL', '05' => 'MAIO', '06' => 'JUNHO',
+                        '07' => 'JULHO', '08' => 'AGOSTO', '09' => 'SETEMBRO',
+                        '10' => 'OUTUBRO', '11' => 'NOVEMBRO', '12' => 'DEZEMBRO'
+                    ];
+                    $mesAtual = $meses[date('m')];
+                    ?>
+                    <h5 class="mb-0"><i class="fas fa-calendar-times text-danger me-2"></i> SEM JANTA (<?= $mesAtual ?>)</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light sticky-top">
+                                <tr>
+                                    <th class="ps-4">Data</th>
+                                    <th>Descrição</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="ps-4 fw-bold text-muted">21/<?= date('m/Y') ?></td>
+                                    <td>Tiradentes (Feriado)</td>
+                                    <td class="text-center"><button class="btn btn-sm btn-outline-danger border-0"><i class="fas fa-trash"></i></button></td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-4 fw-bold text-muted">22/<?= date('m/Y') ?></td>
+                                    <td>Emenda de Feriado</td>
+                                    <td class="text-center"><button class="btn btn-sm btn-outline-danger border-0"><i class="fas fa-trash"></i></button></td>
+                                </tr>
+                                <!-- Outras datas seriam carregadas aqui do banco de dados -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
