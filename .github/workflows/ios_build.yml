@@ -19,11 +19,15 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Forçar Criação do Ambiente iOS
+      - name: Configurando o Ambiente iOS
         working-directory: mobile_app
         run: |
           flutter create . --platforms=ios
           flutter pub get
+
+      - name: Gerando Ícone do App
+        working-directory: mobile_app
+        run: dart run flutter_launcher_icons
 
       - name: Construindo o App iOS (Simulador)
         working-directory: mobile_app

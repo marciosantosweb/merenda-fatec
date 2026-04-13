@@ -25,11 +25,15 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Forçar Criação do Ambiente Android
+      - name: Configurando o Ambiente Android
         working-directory: mobile_app
         run: |
           flutter create . --platforms=android
           flutter pub get
+
+      - name: Gerando Ícone do App
+        working-directory: mobile_app
+        run: dart run flutter_launcher_icons
 
       - name: Construindo o APK Oficial
         working-directory: mobile_app

@@ -23,8 +23,8 @@ function jsonResponse($data, $status = 200) {
 // Roteamento
 switch ($endpoint) {
     case 'auth':
-        // Lógica de Autenticação Microsoft (receberia o token ou dados do mobile)
-        require_once __DIR__ . '/v1/auth.php';
+        // Autenticação Microsoft para Mobile - valida access_token e retorna dados do usuário
+        require_once __DIR__ . '/v1/auth_mobile.php';
         break;
 
     case 'menu':
