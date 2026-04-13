@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _statusMessage = "AGUARDANDO ABERTURA";
         _statusColor = Colors.orange;
         _canReserve = false;
-        _timeRemaining = "Abre às \${start.hour.toString().padLeft(2, '0')}:\${start.minute.toString().padLeft(2, '0')}";
+        _timeRemaining = "Abre às ${start.hour.toString().padLeft(2, '0')}:${start.minute.toString().padLeft(2, '0')}";
       } else if (now.isAfter(end)) {
         _statusMessage = "JANELA ENCERRADA";
         _statusColor = Colors.red;
@@ -126,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
     String twoDigits(int n) => n.toString().padLeft(2, "0");
     String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
     String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-    return "\${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
   }
 
   Future<void> _makeReservation() async {
