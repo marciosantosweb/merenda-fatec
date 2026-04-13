@@ -2,6 +2,7 @@
 /**
  * API v1 - Menu
  */
+use App\Core\Database;
 
 if (!defined('ROOT_PATH')) {
     define('ROOT_PATH', dirname(__FILE__) . '/../../');
@@ -17,8 +18,6 @@ if (!function_exists('jsonResponse')) {
         exit;
     }
 }
-
-use App\Core\Database;
 
 $db = Database::getConnection();
 $today = date('Y-m-d');
