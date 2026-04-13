@@ -26,16 +26,14 @@ jobs:
           channel: 'stable'
 
       - name: Forçar Criação do Ambiente Android
+        working-directory: mobile_app
         run: |
-          # Procura a pasta mobile_app, se não achar, usa a raiz
-          [ -d "mobile_app" ] && cd mobile_app || echo "Usando raiz"
-          flutter create . --platforms=android --overwrite
+          flutter create . --platforms=android
           flutter pub get
 
       - name: Construindo o APK Oficial
-        run: |
-          [ -d "mobile_app" ] && cd mobile_app || echo "Usando raiz"
-          flutter build apk --release --no-tree-shake-icons
+        working-directory: mobile_app
+        run: flutter build apk --release --no-tree-shake-icons
 
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4

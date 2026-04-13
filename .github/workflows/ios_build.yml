@@ -20,15 +20,14 @@ jobs:
           channel: 'stable'
 
       - name: Forçar Criação do Ambiente iOS
+        working-directory: mobile_app
         run: |
-          [ -d "mobile_app" ] && cd mobile_app || echo "Usando raiz"
-          flutter create . --platforms=ios --overwrite
+          flutter create . --platforms=ios
           flutter pub get
 
       - name: Construindo o App iOS (Simulador)
-        run: |
-          [ -d "mobile_app" ] && cd mobile_app || echo "Usando raiz"
-          flutter build ios --simulator --no-tree-shake-icons
+        working-directory: mobile_app
+        run: flutter build ios --simulator --no-tree-shake-icons
 
       - name: Disponibilizar App para Download
         uses: actions/upload-artifact@v4
