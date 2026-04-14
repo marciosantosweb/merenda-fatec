@@ -112,9 +112,10 @@ if ($user) {
 }
 
 // 5. Iniciar Sessão e Direcionar para o painel
-$_SESSION['user_id']   = $user_id;
-$_SESSION['user_name'] = $name;
-$_SESSION['user_role'] = 'admin';
+$_SESSION['user_id']    = $user_id;
+$_SESSION['user_name']  = $name;
+$_SESSION['user_email'] = $email;
+$_SESSION['user_role']  = 'admin';
 
 header("Location: " . BASE_URL . "administrador");
 exit;

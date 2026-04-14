@@ -23,6 +23,28 @@ require_once ROOT_PATH . 'app/Core/Database.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
+// --- BLINDAGEM DE SEGURANÇA ADMIN ---
+// Constantemente verifica se uma sessão ativa de admin ainda corresponde ao e-mail autorizado
+if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
+    $sessionEmail = $_SESSION['user_email'] ?? null;
+    
+    // Se não tiver o email na sessão (sessão antiga), vamos buscar no banco para validar e atualizar a sessão
+    if (!$sessionEmail && isset($_SESSION['user_id'])) {
+        $db = App\Core\Database::getConnection();
+        $stmt = $db->prepare("SELECT email FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $sessionEmail = $stmt->fetchColumn();
+        $_SESSION['user_email'] = $sessionEmail;
+    }
+
+    if (strtolower($sessionEmail) !== strtolower(ADMIN_EMAIL_API)) {
+        // E-mail atual logado é DIFERENTE do autorizado no config.php. Expulsando.
+        session_destroy();
+        header("Location: " . BASE_URL . "login");
+        exit;
+    }
+}
+
 // 2. ROTEAMENTO
 $url = isset($_GET['url']) ? $_GET['url'] : '';
 $url = strtok($url, '?');
