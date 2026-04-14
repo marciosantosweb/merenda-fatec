@@ -28,6 +28,16 @@ $authUrl = "https://login.microsoftonline.com/" . MS_TENANT_ID . "/oauth2/v2.0/a
                      <img src="<?= BASE_URL ?>img/logotipo.png" alt="Fatec Logo" class="img-fluid mb-3" style="max-width: 250px;">
                 </div>
                 
+                <?php if (isset($_GET['error']) && $_GET['error'] === 'unauthorized'): ?>
+                    <div class="alert alert-danger bg-danger-subtle border-start border-4 border-danger shadow-sm py-3 mb-4 d-flex align-items-center" role="alert">
+                        <i class="fas fa-exclamation-triangle fs-4 text-danger me-3"></i>
+                        <div>
+                            <h6 class="alert-heading fw-bold mb-1">Acesso Negado</h6>
+                            <p class="mb-0 small">O e-mail <?= isset($_GET['email']) ? '<b>' . htmlspecialchars($_GET['email']) . '</b>' : 'informado' ?> não possui permissão de administrador para acessar o painel.</p>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <h2 class="mb-3">Bem-vindo(a)</h2>
                 <p class="text-muted mb-4">Escolha a sua forma de acesso ao sistema.</p>
 

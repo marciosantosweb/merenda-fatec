@@ -40,7 +40,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
     if (strtolower($sessionEmail) !== strtolower(ADMIN_EMAIL_API)) {
         // E-mail atual logado é DIFERENTE do autorizado no config.php. Expulsando.
         session_destroy();
-        header("Location: " . BASE_URL . "login");
+        header("Location: " . BASE_URL . "login?error=unauthorized");
         exit;
     }
 }

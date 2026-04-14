@@ -57,35 +57,7 @@ $name = $user_data['displayName'] ?? 'Usuário Fatec';
 
 // 3. Restrito exclusivamente ao e-mail de administrador
 if ($email !== strtolower(ADMIN_EMAIL_API)) {
-    ?>
-    <!DOCTYPE html>
-    <html lang="pt-br">
-    <head>
-        <meta charset="UTF-8">
-        <title>Acesso Negado - Rango!</title>
-        <style>
-            * { margin:0; padding:0; box-sizing:border-box; }
-            body { background:#111; color:#fff; font-family:sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; }
-            .box { text-align:center; padding: 40px 30px; }
-            .icon { font-size:56px; margin-bottom:20px; }
-            h1 { font-size:22px; margin-bottom:10px; color:#B50D11; }
-            p { color:#888; font-size:14px; margin-bottom:6px; }
-            small { color:#555; font-size:12px; }
-            a { display:inline-block; margin-top:30px; padding:10px 28px; background:#B50D11; color:#fff; text-decoration:none; border-radius:8px; font-size:14px; }
-        </style>
-    </head>
-    <body>
-        <div class="box">
-            <div class="icon">🚫</div>
-            <h1>Acesso Negado</h1>
-            <p>Este painel é exclusivo para o administrador do sistema.</p>
-            <small>Conta autenticada: <?= htmlspecialchars($email) ?></small>
-            <br>
-            <a href="<?= BASE_URL ?>">Voltar ao início</a>
-        </div>
-    </body>
-    </html>
-    <?php
+    header("Location: " . BASE_URL . "login?error=unauthorized&email=" . urlencode($email));
     exit;
 }
 
