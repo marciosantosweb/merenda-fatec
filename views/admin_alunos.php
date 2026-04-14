@@ -34,7 +34,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <span class="input-group-text bg-white border-0"><i class="fas fa-search text-muted"></i></span>
                         <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Buscar por nome ou e-mail...">
                     </div>
-                    <select id="filterStatus" class="form-select form-select-lg" style="max-width: 180px;">
+                    <select id="filterStatus" class="form-select form-select-lg" style="width: auto; white-space: nowrap;">
                         <option value="">Todos os Status</option>
                         <option value="Ativo">Ativos</option>
                         <option value="Inativo">Inativos</option>
