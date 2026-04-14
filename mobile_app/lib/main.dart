@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/splash_screen.dart';
 import 'services/auth_service.dart';
 
 void main() {
@@ -44,26 +45,19 @@ class SplashRouter extends StatefulWidget {
 }
 
 class _SplashRouterState extends State<SplashRouter> {
-  @override
-  void initState() {
-    super.initState();
-    _checkSession();
-  }
+  Map<String, dynamic>? _session;
 
   Future<void> _checkSession() async {
-    final session = await AuthService().getLocalSession();
+    _session = await AuthService().getLocalSession();
+  }
 
+  void _navigate() {
     if (!mounted) return;
-
-    if (session != null) {
-      // Sessão válida (dentro de 30 dias): vai direto para a home
+    if (_session != null) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => HomeScreen(user: session),
-        ),
+        MaterialPageRoute(builder: (_) => HomeScreen(user: _session!)),
       );
     } else {
-      // Sem sessão ou expirada: pede login
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
@@ -72,34 +66,11 @@ class _SplashRouterState extends State<SplashRouter> {
 
   @override
   Widget build(BuildContext context) {
-    // Splash minimalista enquanto verifica a sessão
-    return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/images/logo-rango.png',
-              height: 100,
-              errorBuilder: (_, __, ___) => const Icon(
-                Icons.restaurant_menu,
-                color: Color(0xFFB50D11),
-                size: 80,
-              ),
-            ),
-            const SizedBox(height: 30),
-            const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Color(0xFFB50D11),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return SplashScreen(
+      onComplete: () async {
+        await _checkSession();
+        _navigate();
+      },
     );
   }
 }
