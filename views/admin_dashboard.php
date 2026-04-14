@@ -11,6 +11,26 @@ $db = Database::getConnection();
 $stmtConfig = $db->query("SELECT config_key, config_value FROM settings");
 $settingsArray = $stmtConfig->fetchAll(PDO::FETCH_KEY_PAIR);
 
+// Bloqueios
+$stmt = $db->query("SELECT * FROM blocked_days ORDER BY date DESC LIMIT 10");
+$blocked_days = $stmt->fetchAll();
+
+// Estatísticas do dia
+$hoje = date('Y-m-d');
+$stmtStats = $db->prepare("
+    SELECT 
+        COUNT(*) as total_reservas,
+        SUM(repetitions) as total_repeticoes
+    FROM reservations 
+    WHERE date = ?
+");
+$stmtStats->execute([$hoje]);
+$stats = $stmtStats->fetch();
+
+$total_reservas = $stats['total_reservas'] ?? 0;
+$total_repeticoes = $stats['total_repeticoes'] ?? 0;
+$total_pratos = $total_reservas + $total_repeticoes;
+
 $expiration = $settingsArray['login_expiration_days'] ?? 30;
 $start_time = date('H:i', strtotime($settingsArray['reservation_start'] ?? '18:00:00'));
 $end_time = date('H:i', strtotime($settingsArray['reservation_end'] ?? '19:30:00'));
@@ -52,7 +72,7 @@ $menuText = $menuToday ? $menuToday['description'] : '';
                     </div>
                     <div class="flex-grow-1 ms-3">
                         <h6 class="mb-0 text-muted small">Reservas Hoje</h6>
-                        <span class="h4 mb-0">128</span>
+                        <span class="h4 mb-0"><?= $total_reservas ?></span>
                     </div>
                 </div>
             </div>
@@ -65,7 +85,7 @@ $menuText = $menuToday ? $menuToday['description'] : '';
                     </div>
                     <div class="flex-grow-1 ms-3">
                         <h6 class="mb-0 text-muted small">Repetições Totais</h6>
-                        <span class="h4 mb-0">210</span>
+                        <span class="h4 mb-0"><?= $total_repeticoes ?></span>
                     </div>
                 </div>
             </div>
@@ -78,7 +98,7 @@ $menuText = $menuToday ? $menuToday['description'] : '';
                     </div>
                     <div class="flex-grow-1 ms-3">
                         <h6 class="mb-0 text-muted small">Pratos Produzir</h6>
-                        <span class="h4 mb-0">338</span>
+                        <span class="h4 mb-0"><?= $total_pratos ?></span>
                     </div>
                 </div>
             </div>

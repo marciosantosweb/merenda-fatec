@@ -6,9 +6,30 @@ $today = date('Y-m-d');
 $is_weekend = (date('w') == 0 || date('w') == 6);
 
 // Verificar bloqueio acadêmico
-$stmt = $db->prepare("SELECT description FROM academic_calendar WHERE date = ?");
+$stmt = $db->prepare("SELECT description FROM blocked_days WHERE date = ?");
 $stmt->execute([$today]);
 $calendar_event = $stmt->fetch();
+
+// Buscar Estatísticas do Dia
+$stmtStats = $db->prepare("
+    SELECT 
+        COUNT(*) as total_reservas,
+        SUM(repetitions) as total_repeticoes
+    FROM reservations 
+    WHERE date = ?
+");
+$stmtStats->execute([$today]);
+$stats = $stmtStats->fetch();
+
+$total_reservas = $stats['total_reservas'] ?? 0;
+$total_repeticoes = $stats['total_repeticoes'] ?? 0;
+$total_pratos = $total_reservas + $total_repeticoes;
+
+// Buscar Cardápio
+$stmtMenu = $db->prepare("SELECT description FROM menu WHERE date = ?");
+$stmtMenu->execute([$today]);
+$menu = $stmtMenu->fetch();
+$menu_text = $menu ? $menu['description'] : 'Cardápio ainda não informado';
 ?>
 <nav class="navbar navbar-dark bg-dark">
     <div class="container d-flex justify-content-between align-items-center">
@@ -43,8 +64,8 @@ $calendar_event = $stmt->fetch();
                 <div class="card card-fatec bg-gradient-red text-white">
                     <div class="card-body p-4 text-center">
                         <h2 class="h5 opacity-75">Cardápio do Dia</h2>
-                        <h1 class="display-5 mb-0">Arroz, Feijão, Proteína e Salada</h1>
-                        <button class="btn btn-light btn-sm mt-3 fw-bold">ALTERAR CARDÁPIO</button>
+                        <h1 class="display-5 mb-0"><?= htmlspecialchars($menu_text) ?></h1>
+                        <a href="<?= BASE_URL ?>administrador" class="btn btn-light btn-sm mt-3 fw-bold">Painel Administrador</a>
                     </div>
                 </div>
             </div>
@@ -53,21 +74,21 @@ $calendar_event = $stmt->fetch();
             <div class="col-md-4 mb-4">
                 <div class="card card-fatec h-100 p-4 text-center shadow-sm">
                     <h3 class="h6 text-muted">REFEIÇÕES (BASE)</h3>
-                    <p class="display-3 fw-bold mb-0">128</p>
+                    <p class="display-3 fw-bold mb-0 text-dark"><?= $total_reservas ?></p>
                     <small class="text-muted">Alunos confirmados hoje</small>
                 </div>
             </div>
             <div class="col-md-4 mb-4">
                 <div class="card card-fatec h-100 p-4 text-center shadow-sm">
-                    <h3 class="h6 text-muted">REPETIÇÕES ESTIMADAS</h3>
-                    <p class="display-3 fw-bold mb-0 text-fatec-red">210</p>
-                    <small class="text-muted">Somatória de extras (1 a 3)</small>
+                    <h3 class="h6 text-muted">REPETIÇÕES ESPERADAS</h3>
+                    <p class="display-3 fw-bold mb-0 text-fatec-red"><?= $total_repeticoes ?></p>
+                    <small class="text-muted">Somatória de extras pedidas</small>
                 </div>
             </div>
             <div class="col-md-4 mb-4">
                 <div class="card card-fatec h-100 p-4 text-center shadow-lg border-bottom border-5 border-danger">
                     <h3 class="h6 text-muted fw-bold text-dark">TOTAL DE PRATOS</h3>
-                    <p class="display-3 fw-bold mb-0">338</p>
+                    <p class="display-3 fw-bold mb-0 text-dark"><?= $total_pratos ?></p>
                     <small class="text-dark fw-bold">Previsão de consumo total</small>
                 </div>
             </div>
