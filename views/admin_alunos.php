@@ -15,6 +15,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <?php include __DIR__ . '/partial_admin_menu.php'; ?>
 
+<div class="container my-5">
 <div class="row animated-fade">
     <div class="col-12 mb-4">
         <h1 class="h3 fatec-title mb-2"><i class="fas fa-users text-danger me-2"></i> GESTÃO DE USUÁRIOS</h1>
@@ -113,6 +114,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <script>
