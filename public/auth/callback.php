@@ -55,18 +55,42 @@ curl_close($ch);
 $email = strtolower($user_data['mail'] ?? $user_data['userPrincipalName'] ?? '');
 $name = $user_data['displayName'] ?? 'Usuário Fatec';
 
-// 3. Validação de Regras de Negócio
-if (empty($email)) {
-    die("Erro: Não foi possível obter o e-mail da conta Microsoft.");
+// 3. Restrito exclusivamente ao e-mail de administrador
+if ($email !== strtolower(ADMIN_EMAIL_API)) {
+    ?>
+    <!DOCTYPE html>
+    <html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <title>Acesso Negado - Rango!</title>
+        <style>
+            * { margin:0; padding:0; box-sizing:border-box; }
+            body { background:#111; color:#fff; font-family:sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+            .box { text-align:center; padding: 40px 30px; }
+            .icon { font-size:56px; margin-bottom:20px; }
+            h1 { font-size:22px; margin-bottom:10px; color:#B50D11; }
+            p { color:#888; font-size:14px; margin-bottom:6px; }
+            small { color:#555; font-size:12px; }
+            a { display:inline-block; margin-top:30px; padding:10px 28px; background:#B50D11; color:#fff; text-decoration:none; border-radius:8px; font-size:14px; }
+        </style>
+    </head>
+    <body>
+        <div class="box">
+            <div class="icon">🚫</div>
+            <h1>Acesso Negado</h1>
+            <p>Este painel é exclusivo para o administrador do sistema.</p>
+            <small>Conta autenticada: <?= htmlspecialchars($email) ?></small>
+            <br>
+            <a href="<?= BASE_URL ?>">Voltar ao início</a>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit;
 }
 
-// Só o f189dir@cps.sp.gov.br pode ser admin
-$role = ($email === strtolower(ADMIN_EMAIL_API)) ? 'admin' : 'aluno';
-
-// Se não for admin e não for domínio @cps ou @fatec, bloquear (Opcional, mas seguro)
-if ($role !== 'admin' && !strpos($email, '@fatec.sp.gov.br') && !strpos($email, '@cps.sp.gov.br')) {
-    die("Acesso negado: Este sistema é exclusivo para alunos e funcionários da Fatec.");
-}
+// A partir daqui, somente o e-mail admin chegará
+$role = 'admin';
 
 // 4. Salvar ou Atualizar no Banco de Dados
 $db = Database::getConnection();
@@ -76,21 +100,21 @@ $user = $stmt->fetch();
 
 if ($user) {
     if ($user['status'] === 'inactive') {
-        die("Sua conta foi desativada pelo administrador.");
+        die("Sua conta foi desativada.");
     }
     $user_id = $user['id'];
     $db->prepare("UPDATE users SET last_login = NOW() WHERE id = ?")->execute([$user_id]);
 } else {
-    // Primeiro acesso: Cadastrar
-    $stmt = $db->prepare("INSERT INTO users (name, email, role, status, microsoft_id, last_login) VALUES (?, ?, ?, 'active', ?, NOW())");
-    $stmt->execute([$name, $email, $role, $user_data['id']]);
+    // Primeiro acesso: cadastrar como admin
+    $stmt = $db->prepare("INSERT INTO users (name, email, role, status, microsoft_id, last_login) VALUES (?, ?, 'admin', 'active', ?, NOW())");
+    $stmt->execute([$name, $email, $user_data['id']]);
     $user_id = $db->lastInsertId();
 }
 
-// 5. Iniciar Sessão e Direcionar
-$_SESSION['user_id'] = $user_id;
+// 5. Iniciar Sessão e Direcionar para o painel
+$_SESSION['user_id']   = $user_id;
 $_SESSION['user_name'] = $name;
-$_SESSION['user_role'] = $role;
+$_SESSION['user_role'] = 'admin';
 
-header("Location: " . BASE_URL . ($role === 'admin' ? 'administrador' : 'login'));
+header("Location: " . BASE_URL . "administrador");
 exit;
