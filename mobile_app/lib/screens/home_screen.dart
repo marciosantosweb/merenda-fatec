@@ -28,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime? _endTime;
   bool _hasReservation = false;
   int _repetitions = 0;
+  bool _isWindowOpen = false;
 
   String _getFormattedDate() {
     final now = DateTime.now();
@@ -99,9 +100,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final now = DateTime.now();
     final start = _startTime ?? DateTime(now.year, now.month, now.day, 18, 0);
     final end = _endTime ?? DateTime(now.year, now.month, now.day, 19, 30);
+    
+    final bool isWeekend = now.weekday == DateTime.saturday || now.weekday == DateTime.sunday;
 
     setState(() {
-      if (now.weekday == DateTime.saturday || now.weekday == DateTime.sunday) {
+      _isWindowOpen = !isWeekend && now.isAfter(start) && now.isBefore(end);
+      
+      if (isWeekend) {
         _statusMessage = "FIM DE SEMANA";
         _statusColor = Colors.blueGrey;
         _canReserve = false;
@@ -154,6 +159,123 @@ class _HomeScreenState extends State<HomeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Erro ao confirmar de reserva.'), backgroundColor: Colors.red));
       setState(() { _canReserve = true; });
     }
+  }
+
+  Future<void> _cancelReservation() async {
+    setState(() {
+      _isLoadingData = true;
+    });
+    final res = await _apiService.cancelReservation(widget.user['id']);
+    if (!mounted) return;
+    if (res['success'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Agendamento cancelado com sucesso!'), backgroundColor: Colors.blue));
+      _hasReservation = false;
+      _repetitions = 0;
+      _loadApiData();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Erro ao cancelar reserva.'), backgroundColor: Colors.red));
+      setState(() { _isLoadingData = false; });
+    }
+  }
+
+  void _showEditModal() {
+    int tempRepetitions = _repetitions;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 20, right: 20, top: 25
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Editar Agendamento", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF313131))),
+                  const SizedBox(height: 20),
+                  const Text("Quantidade de Repetições:", style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF666666))),
+                  const SizedBox(height: 15),
+                  Row(
+                    children: [
+                      for (int i = 0; i <= 2; i++)
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setModalState(() => tempRepetitions = i),
+                            child: Container(
+                              margin: EdgeInsets.only(right: i < 2 ? 10 : 0),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: tempRepetitions == i ? Colors.lightBlue : Colors.grey[100],
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: tempRepetitions == i ? Colors.lightBlue : Colors.grey[300]!),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  i == 0 ? "Não" : "+$i prato${i>1?'s':''}",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: tempRepetitions == i ? Colors.white : Colors.grey[700],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 35),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _cancelReservation();
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            side: const BorderSide(color: Colors.red),
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: const Text("EXCLUIR", style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      const SizedBox(width: 15),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() => _repetitions = tempRepetitions);
+                            Navigator.pop(context);
+                            _makeReservation();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.lightBlue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            elevation: 0,
+                          ),
+                          child: const Text("SALVAR EDIÇÃO", style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 25),
+                ],
+              ),
+            );
+          }
+        );
+      }
+    );
   }
 
   @override
@@ -355,8 +477,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   const SizedBox(height: 35),
 
-                  // ── Quantidade de Repetições ─────────────────────────────────────
-                  if (_canReserve && DateTime.now().weekday != DateTime.saturday && DateTime.now().weekday != DateTime.sunday)
+                  // ── Resumo do Agendamento (Apenas se já tem reserva) ────────────
+                  if (_hasReservation)
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 25),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: Colors.blue[100]!),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.fact_check, color: Colors.blue, size: 20),
+                              SizedBox(width: 8),
+                              Text("Resumo do Agendamento", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.blue)),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text("Refeição: $_menuDescription", style: const TextStyle(fontSize: 13, color: Colors.black87)),
+                          const SizedBox(height: 5),
+                          Text("Pratos extras: ${_repetitions == 0 ? 'Nenhum' : '+$_repetitions'}", style: const TextStyle(fontSize: 13, color: Colors.black87, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+
+                  // ── Quantidade de Repetições (se não fez reserva) ──────────────────────
+                  if (_canReserve && !_hasReservation)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -398,38 +549,65 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
 
-                  // Botão de Reserva
-                  Container(
-                    width: double.infinity,
-                    height: 65,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(50),
-                      boxShadow: _canReserve 
-                        ? [BoxShadow(color: const Color(0xFFB50D11).withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))]
-                        : [],
-                    ),
-                    child: ElevatedButton(
-                      onPressed: _canReserve ? _makeReservation : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFB50D11),
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.grey[300],
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-                        elevation: 0,
+                  // Botão de Reserva / Editar
+                  if (_hasReservation && _isWindowOpen)
+                    Container(
+                      width: double.infinity,
+                      height: 65,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(50),
+                        boxShadow: [BoxShadow(color: Colors.lightBlue.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (_canReserve) const Icon(Icons.flatware),
-                          if (_canReserve) const SizedBox(width: 10),
-                          Text(
-                            _canReserve ? "CONFIRMAR JANTA" : "FORA DO HORÁRIO",
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                          ),
-                        ],
+                      child: ElevatedButton(
+                        onPressed: _showEditModal,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.lightBlue,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                          elevation: 0,
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.edit),
+                            SizedBox(width: 10),
+                            Text("EDITAR AGENDAMENTO", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                          ],
+                        ),
+                      ),
+                    )
+                  else if (!_hasReservation)
+                    Container(
+                      width: double.infinity,
+                      height: 65,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(50),
+                        boxShadow: _canReserve 
+                          ? [BoxShadow(color: const Color(0xFFB50D11).withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))]
+                          : [],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: _canReserve ? _makeReservation : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFB50D11),
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: Colors.grey[300],
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                          elevation: 0,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (_canReserve) const Icon(Icons.flatware),
+                            if (_canReserve) const SizedBox(width: 10),
+                            Text(
+                              _canReserve ? "CONFIRMAR JANTA" : "FORA DO HORÁRIO",
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(height: 30),
 
                   // ── Rodapé ─────────────────────────────────────

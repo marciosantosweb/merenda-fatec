@@ -15,6 +15,7 @@ header('Content-Type: application/json');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userId = $_POST['user_id'] ?? null;
     $repetitions = $_POST['repetitions'] ?? 0;
+    $action = $_POST['action'] ?? 'save';
     $today = date('Y-m-d');
 
     if (!$userId) {
@@ -25,20 +26,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $db = Database::getConnection();
 
     try {
-        // Upsert da reserva (insere ou atualiza se já existir pro dia)
-        $stmt = $db->prepare("
-            INSERT INTO reservations (user_id, date, repetitions) 
-            VALUES (?, ?, ?)
-            ON DUPLICATE KEY UPDATE repetitions = ?, modifications = modifications + 1
-        ");
-        
-        $stmt->execute([$userId, $today, $repetitions, $repetitions]);
-
-        echo json_encode([
-            'success' => true, 
-            'message' => 'Reserva confirmada!',
-            'date' => $today
-        ]);
+        if ($action === 'delete') {
+            $stmt = $db->prepare("DELETE FROM reservations WHERE user_id = ? AND date = ?");
+            $stmt->execute([$userId, $today]);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Reserva cancelada!',
+                'date' => $today
+            ]);
+        } else {
+            // Upsert da reserva
+            $stmt = $db->prepare("
+                INSERT INTO reservations (user_id, date, repetitions) 
+                VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE repetitions = ?, modifications = modifications + 1
+            ");
+            $stmt->execute([$userId, $today, $repetitions, $repetitions]);
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Reserva confirmada!',
+                'date' => $today
+            ]);
+        }
 
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'message' => 'Erro no banco: ' . $e->getMessage()]);

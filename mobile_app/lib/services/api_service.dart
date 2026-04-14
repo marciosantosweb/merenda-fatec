@@ -35,6 +35,22 @@ class ApiService {
     }
   }
 
+  // Cancelar Reserva
+  Future<Map<String, dynamic>> cancelReservation(int userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/v1/reservation.php'),
+        body: {
+          'user_id': userId.toString(),
+          'action': 'delete',
+        },
+      );
+      return json.decode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Erro de conexão'};
+    }
+  }
+
   // Buscar Configurações (Horários)
   Future<Map<String, dynamic>> getSettings() async {
     try {
