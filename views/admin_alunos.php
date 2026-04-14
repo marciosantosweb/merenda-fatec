@@ -9,7 +9,7 @@ try {
 } catch (\Exception $e) {}
 
 // Fetch all non-admin, non-system users
-$stmt = $db->query("SELECT * FROM users WHERE role IN ('aluno') ORDER BY name ASC");
+$stmt = $db->query("SELECT * FROM users WHERE role IN ('aluno', 'admin') ORDER BY name ASC");
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -54,8 +54,9 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <tr style="cursor: pointer; user-select: none;">
                                 <th class="ps-4" onclick="sortTable(0)">Nome do Usuário <i class="fas fa-sort text-muted ms-1"></i></th>
                                 <th onclick="sortTable(1)">E-mail <i class="fas fa-sort text-muted ms-1"></i></th>
-                                <th onclick="sortTable(2)">Último Acesso <i class="fas fa-sort text-muted ms-1"></i></th>
-                                <th onclick="sortTable(3)">Status <i class="fas fa-sort text-muted ms-1"></i></th>
+                                <th onclick="sortTable(2)">Perfil <i class="fas fa-sort text-muted ms-1"></i></th>
+                                <th onclick="sortTable(3)">Último Acesso <i class="fas fa-sort text-muted ms-1"></i></th>
+                                <th onclick="sortTable(4)">Status <i class="fas fa-sort text-muted ms-1"></i></th>
                                 <th class="text-center px-4">Ações</th>
                             </tr>
                         </thead>
@@ -72,6 +73,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <?php foreach($users as $user):
                                 $lastLogin = $user['last_login'] ? date('d/m/y H:i', strtotime($user['last_login'])) : 'Nunca';
                                 $isActive  = $user['status'] === 'active';
+                                $isAdmin   = $user['role'] === 'admin';
                             ?>
                             <tr class="<?= !$isActive ? 'bg-light-subtle' : '' ?>" data-user-id="<?= $user['id'] ?>">
                                 <td class="ps-4 fw-bold <?= !$isActive ? 'text-muted' : '' ?>">
@@ -79,6 +81,13 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </td>
                                 <td class="<?= !$isActive ? 'text-muted' : '' ?>">
                                     <?= htmlspecialchars($user['email']) ?>
+                                </td>
+                                <td>
+                                    <?php if($isAdmin): ?>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger">Admin</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-light text-secondary border">Aluno/Usuário</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="text-muted">
                                     <small><?= $lastLogin ?></small>
@@ -91,7 +100,9 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <?php endif; ?>
                                 </td>
                                 <td class="text-center px-4">
-                                    <?php if($isActive): ?>
+                                    <?php if($isAdmin): ?>
+                                        <span class="text-muted small">—</span>
+                                    <?php elseif($isActive): ?>
                                         <button class="btn btn-sm btn-outline-danger w-100 toggle-btn"
                                                 data-user-id="<?= $user['id'] ?>"
                                                 data-action="deactivate">
