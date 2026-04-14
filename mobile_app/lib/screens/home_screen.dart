@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../services/api_service.dart';
@@ -13,7 +14,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   final ApiService _apiService = ApiService();
   String _timeRemaining = "--:--:--";
   String _statusMessage = "Carregando...";
@@ -29,6 +30,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _hasReservation = false;
   int _repetitions = 0;
   bool _isWindowOpen = false;
+  bool _isRefreshing = false;
+  late AnimationController _refreshController;
 
   String _getFormattedDate() {
     final now = DateTime.now();
@@ -43,6 +46,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _refreshController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
     _loadVersion();
     _loadApiData();
     _startTimer();
@@ -281,13 +288,51 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _refreshController.dispose();
     super.dispose();
+  }
+
+  Future<void> _refreshData() async {
+    if (_isRefreshing) return;
+    setState(() => _isRefreshing = true);
+    _refreshController.repeat();
+    await _loadApiData();
+    _refreshController.stop();
+    _refreshController.reset();
+    if (mounted) setState(() => _isRefreshing = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
+      floatingActionButton: AnimatedBuilder(
+        animation: _refreshController,
+        builder: (context, child) {
+          return Transform.rotate(
+            angle: _refreshController.value * 2 * pi,
+            child: child,
+          );
+        },
+        child: FloatingActionButton(
+          onPressed: _refreshData,
+          backgroundColor: const Color(0xFF313131),
+          foregroundColor: Colors.white,
+          elevation: 4,
+          shape: const CircleBorder(),
+          tooltip: 'Atualizar',
+          child: _isRefreshing
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.5,
+                  ),
+                )
+              : const Icon(Icons.refresh, size: 26),
+        ),
+      ),
       body: Column(
         children: [
           // Header Customizado com Logo Fatec + Nome e Logout
@@ -343,7 +388,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(context).padding.bottom + 90,
+              ),
               child: Column(
                 children: [
                   const SizedBox(height: 20),
