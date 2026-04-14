@@ -31,6 +31,10 @@ $total_reservas = $stats['total_reservas'] ?? 0;
 $total_repeticoes = $stats['total_repeticoes'] ?? 0;
 $total_pratos = $total_reservas + $total_repeticoes;
 
+// Buscar Total de Usuários Ativos
+$stmtUsers = $db->query("SELECT COUNT(*) FROM users WHERE status = 'active' AND role = 'aluno'");
+$total_usuarios = $stmtUsers->fetchColumn();
+
 $expiration = $settingsArray['login_expiration_days'] ?? 30;
 $start_time = date('H:i', strtotime($settingsArray['reservation_start'] ?? '18:00:00'));
 $end_time = date('H:i', strtotime($settingsArray['reservation_end'] ?? '19:30:00'));
@@ -58,8 +62,8 @@ $menuText = $menuToday ? $menuToday['description'] : '';
                         <i class="fas fa-user-graduate text-primary fs-4"></i>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-0 text-muted small">Alunos Ativos</h6>
-                        <span class="h4 mb-0">342</span>
+                        <h6 class="mb-0 text-muted small">Alunos/Usuários Ativos</h6>
+                        <span class="h4 mb-0"><?= $total_usuarios ?></span>
                     </div>
                 </div>
             </div>

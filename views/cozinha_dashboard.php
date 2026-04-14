@@ -75,7 +75,7 @@ $menu_text = $menu ? $menu['description'] : 'Cardápio ainda não informado';
                 <div class="card card-fatec h-100 p-4 text-center shadow-sm">
                     <h3 class="h6 text-muted">REFEIÇÕES (BASE)</h3>
                     <p class="display-3 fw-bold mb-0 text-dark"><?= $total_reservas ?></p>
-                    <small class="text-muted">Alunos confirmados hoje</small>
+                    <small class="text-muted">Usuários confirmados hoje</small>
                 </div>
             </div>
             <div class="col-md-4 mb-4">
