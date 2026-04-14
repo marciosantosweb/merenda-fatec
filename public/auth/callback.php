@@ -79,9 +79,10 @@ if ($user) {
         die("Sua conta foi desativada pelo administrador.");
     }
     $user_id = $user['id'];
+    $db->prepare("UPDATE users SET last_login = NOW() WHERE id = ?")->execute([$user_id]);
 } else {
     // Primeiro acesso: Cadastrar
-    $stmt = $db->prepare("INSERT INTO users (name, email, role, status, microsoft_id) VALUES (?, ?, ?, 'active', ?)");
+    $stmt = $db->prepare("INSERT INTO users (name, email, role, status, microsoft_id, last_login) VALUES (?, ?, ?, 'active', ?, NOW())");
     $stmt->execute([$name, $email, $role, $user_data['id']]);
     $user_id = $db->lastInsertId();
 }

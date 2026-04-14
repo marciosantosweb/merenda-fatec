@@ -96,7 +96,7 @@ try {
 
     if (!$user) {
         // Primeiro acesso: criar conta com role 'aluno' e status 'active'
-        $ins = $db->prepare("INSERT INTO users (name, email, role, status, microsoft_id) VALUES (?, ?, 'aluno', 'active', ?)");
+        $ins = $db->prepare("INSERT INTO users (name, email, role, status, microsoft_id, last_login) VALUES (?, ?, 'aluno', 'active', ?, NOW())");
         $ins->execute([$name, $email, $ms_id]);
         $user_id = $db->lastInsertId();
         $role   = 'aluno';
@@ -107,6 +107,8 @@ try {
         $status  = $user['status'];
         $name    = $user['name'];
 
+        $db->prepare("UPDATE users SET last_login = NOW() WHERE id = ?")->execute([$user_id]);
+        
         // Atualiza microsoft_id se ainda não tiver
         if (empty($user['microsoft_id'])) {
             $db->prepare("UPDATE users SET microsoft_id = ? WHERE id = ?")->execute([$ms_id, $user_id]);
