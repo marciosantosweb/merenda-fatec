@@ -104,24 +104,37 @@ $assetsBase = BASE_URL;
 
 <?php
 // 4. VIEWS
-switch ($page) {
-    case 'login': include ROOT_PATH . 'views/login.php'; break;
-    case 'cozinha': 
-        if (empty($subpage)) {
-            include ROOT_PATH . 'views/cozinha_dashboard.php';
-        } else {
-            include ROOT_PATH . "views/cozinha_{$subpage}.php";
-        }
-        break;
-    case 'administrador':
-
-        if (empty($subpage)) {
-            include ROOT_PATH . 'views/admin_dashboard.php';
-        } else {
-            include ROOT_PATH . "views/admin_{$subpage}.php";
-        }
-        break;
-    default: include ROOT_PATH . 'views/login.php'; break;
+if (!isset($_SESSION['user_id']) && $page !== 'login') {
+    include ROOT_PATH . 'views/login.php';
+} else {
+    switch ($page) {
+        case 'login': include ROOT_PATH . 'views/login.php'; break;
+        case 'cozinha': 
+            if (empty($subpage)) {
+                include ROOT_PATH . 'views/cozinha_dashboard.php';
+            } else {
+                $viewPath = ROOT_PATH . "views/cozinha_{$subpage}.php";
+                if (file_exists($viewPath)) {
+                    include $viewPath;
+                } else {
+                    include ROOT_PATH . 'views/cozinha_dashboard.php';
+                }
+            }
+            break;
+        case 'administrador':
+            if (empty($subpage)) {
+                include ROOT_PATH . 'views/admin_dashboard.php';
+            } else {
+                $viewPath = ROOT_PATH . "views/admin_{$subpage}.php";
+                if (file_exists($viewPath)) {
+                    include $viewPath;
+                } else {
+                    include ROOT_PATH . 'views/admin_dashboard.php';
+                }
+            }
+            break;
+        default: include ROOT_PATH . 'views/login.php'; break;
+    }
 }
 ?>
 

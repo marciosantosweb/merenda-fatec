@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
         
         $filePath = $uploadDir . 'calendario_atual.pdf';
-        move_uploaded_file($_FILES['calendar_pdf']['tmp_id'], $filePath);
+        move_uploaded_file($_FILES['calendar_pdf']['tmp_name'], $filePath);
 
         // 2. Busca Inteligente (Usando SERPER API conforme solicitado)
         // Vamos buscar os feriados e emendas oficiais de 2026 para São Sebastião

@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $ext = pathinfo($_FILES['menu_file']['name'], PATHINFO_EXTENSION);
         $filePath = $uploadDir . 'cardapio_mensal.' . $ext;
-        move_uploaded_file($_FILES['menu_file']['tmp_id'], $filePath);
+        move_uploaded_file($_FILES['menu_file']['tmp_name'], $filePath);
 
         // 2. Busca Inteligente (Mock SERPER / Gemini AI)
         // Aqui a IA (Gemini etc.) processaria o documento. Vamos simular esse processo:
