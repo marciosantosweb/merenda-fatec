@@ -31,9 +31,13 @@ if (isset($_GET['type']) && $_GET['type'] === 'monthly') {
     $stmt->execute([$mesAtual, $anoAtual]);
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Buscar dias bloqueados do mês para sinalizar no aplicativo
-    $stmtBlocked = $db->prepare("SELECT date, description FROM blocked_days WHERE MONTH(date) = ? AND YEAR(date) = ?");
-    $stmtBlocked->execute([$mesAtual, $anoAtual]);
+    // Buscar dias bloqueados (Manual + IA)
+    $stmtBlocked = $db->prepare("
+        SELECT date, description FROM blocked_days WHERE MONTH(date) = ? AND YEAR(date) = ?
+        UNION
+        SELECT date, description FROM academic_calendar WHERE MONTH(date) = ? AND YEAR(date) = ?
+    ");
+    $stmtBlocked->execute([$mesAtual, $anoAtual, $mesAtual, $anoAtual]);
     $blockedDays = $stmtBlocked->fetchAll(PDO::FETCH_KEY_PAIR);
 
     jsonResponse([
@@ -41,7 +45,7 @@ if (isset($_GET['type']) && $_GET['type'] === 'monthly') {
         'month' => (int)$mesAtual,
         'year' => (int)$anoAtual,
         'menu' => $items,
-        'blocked_days' => $blockedDays
+        'blocked_days' => (object)$blockedDays
     ]);
 }
 

@@ -186,6 +186,12 @@ if (isset($_GET['teste'])) {
                 </div>
             <?php endif; ?>
         </div>
+
+        <div class="mt-auto py-4 text-center">
+            <p class="mb-0 text-muted" style="font-size: 0.65rem; letter-spacing: 0.5px;">FATEC SÃO SEBASTIÃO</p>
+            <p class="mb-2 text-muted" style="font-size: 0.65rem;">Desenvolvido por Prof. Márcio Santos</p>
+            <span class="badge bg-light text-dark border fw-bold" style="font-size: 0.7rem; color: #333 !important;">v1.2.4</span>
+        </div>
     </div>
 
     <div class="nav-bottom">
