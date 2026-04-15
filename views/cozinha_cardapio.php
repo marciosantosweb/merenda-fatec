@@ -31,8 +31,12 @@ $nomeMesAtual = $meses[$mesAtual];
                 <div class="card-body">
                     <p class="text-muted small">Arraste e solte o arquivo do cardápio oficial (PDF ou Imagem) abaixo. Nossa IA irá processar os pratos e organizar todo o calendário de <?= $nomeMesAtual ?> automaticamente.</p>
                     
-                    <?php if (isset($_GET['success'])): ?>
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'api_processed'): ?>
                         <div class="alert alert-success py-3 small shadow-sm"><i class="fas fa-check-circle me-1"></i> Cardápio processado com sucesso! Os pratos já foram sincronizados com o aplicativo.</div>
+                    <?php endif; ?>
+
+                    <?php if (isset($_GET['success']) && $_GET['success'] === 'menu_cleared'): ?>
+                        <div class="alert alert-warning py-3 small shadow-sm"><i class="fas fa-trash-alt me-1"></i> Cardápio removido com sucesso. Os dias estão em branco no aplicativo.</div>
                     <?php endif; ?>
                     
                     <?php if (isset($_GET['error'])): ?>
@@ -64,7 +68,16 @@ $nomeMesAtual = $meses[$mesAtual];
             <div class="card card-fatec h-100 border-0 shadow-sm">
                 <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold"><i class="fas fa-clipboard-list text-danger me-2"></i> Cardápio Atual (<?= $nomeMesAtual ?>)</h5>
-                    <span class="badge bg-danger rounded-pill"><?= count($cardapioMensal) ?> dias</span>
+                    <div class="d-flex gap-2 align-items-center">
+                        <span class="badge bg-danger rounded-pill"><?= count($cardapioMensal) ?> dias</span>
+                        <?php if (count($cardapioMensal) > 0): ?>
+                            <form action="<?= BASE_URL ?>api/clear_menu.php" method="POST" onsubmit="return confirm('Tem certeza que deseja APAGAR TODO o cardápio? Isso não pode ser desfeito.')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger opacity-75 hover-opacity-100" title="Apagar tudo">
+                                    <i class="fas fa-trash-alt me-1"></i> Limpar Tudo
+                                </button>
+                            </form>
+                        <?php endif; ?>
+                    </div>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive" style="max-height: 550px; overflow-y: auto;">

@@ -16,6 +16,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $filePath = $uploadDir . 'calendario_atual.pdf';
         move_uploaded_file($_FILES['calendar_pdf']['tmp_name'], $filePath);
+        
+        // Salvar nome original no banco
+        $originalName = $_FILES['calendar_pdf']['name'];
+        $db = Database::getConnection();
+        $stmtName = $db->prepare("INSERT INTO settings (config_key, config_value) VALUES ('last_calendar_file', ?) ON DUPLICATE KEY UPDATE config_value = ?");
+        $stmtName->execute([$originalName, $originalName]);
 
         // 2. Busca Inteligente (Usando SERPER API conforme solicitado)
         // Vamos buscar os feriados e emendas oficiais de 2026 para São Sebastião

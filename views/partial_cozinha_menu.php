@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
     <div class="container">
         <a class="navbar-brand fatec-title d-flex align-items-center" href="<?= BASE_URL ?>cozinha">
-            <img src="<?= BASE_URL ?>img/logotipo.png" style="height: 45px; width: auto; filter: brightness(0) invert(1);" alt="Logo Fatec">
+            <img src="<?= BASE_URL ?>public/img/logotipo.png" style="height: 45px; width: auto; filter: brightness(0) invert(1);" alt="Logo Fatec">
             <span class="ms-3 border-start ps-3 text-uppercase small opacity-75 d-none d-md-inline">Painel Cozinha</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavCozinha">

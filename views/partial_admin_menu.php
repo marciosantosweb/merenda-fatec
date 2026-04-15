@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-fatec-gray mb-4">
     <div class="container">
         <a class="navbar-brand fatec-title d-flex align-items-center" href="<?= BASE_URL ?>administrador">
-            <img src="<?= BASE_URL ?>img/logotipo.png" style="height: 60px; width: auto;" alt="Logo Fatec">
+            <img src="<?= BASE_URL ?>public/img/logotipo.png" style="height: 60px; width: auto;" alt="Logo Fatec">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>

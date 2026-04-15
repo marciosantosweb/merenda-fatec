@@ -92,6 +92,17 @@ if (isset($_GET['teste'])) {
         padding: 15px;
         margin-top: 20px;
         border-radius: 10px;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .menu-card:active { transform: scale(0.98); background: #f8f8f8; }
+    .btn-month-view {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        color: var(--accent-red);
+        font-size: 0.9rem;
     }
     .nav-bottom {
         height: 70px;
@@ -139,10 +150,15 @@ if (isset($_GET['teste'])) {
 
         <div class="mt-4">
             <?php if (!$is_weekend && !$is_blocked): ?>
-                <h6 class="fw-bold mb-3 small"><i class="fas fa-utensils text-danger me-2"></i> CARDÁPIO DO DIA</h6>
-                <div class="menu-card animated-fade">
-                    <p class="mb-0 fw-bold">Arroz, Feijão, Proteína e Guarnição</p>
+                <div class="menu-card animated-fade" onclick="openMonthModal()">
+                    <div class="btn-month-view">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <p class="mb-0 fw-bold pe-5">Arroz, Feijão, Proteína e Guarnição</p>
                     <small class="text-muted text-uppercase" style="font-size: 0.65rem;">Cozinha Fatec São Sebastião</small>
+                    <div class="mt-2 text-primary small fw-bold" style="font-size: 0.7rem;">
+                        <i class="fas fa-eye me-1"></i> VER CARDÁPIO DO MÊS
+                    </div>
                 </div>
                 
                 <?php if ($is_open): ?>
@@ -176,6 +192,27 @@ if (isset($_GET['teste'])) {
         <div class="nav-item-sub active"><i class="fas fa-home d-block fs-5"></i>Início</div>
         <div class="nav-item-sub"><i class="fas fa-history d-block fs-5"></i>Histórico</div>
         <div class="nav-item-sub"><i class="fas fa-user d-block fs-5"></i>Perfil</div>
+    </div>
+</div>
+
+<!-- Modal Cardápio Mensal -->
+<div class="modal fade" id="monthMenuModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable mx-3">
+        <div class="modal-content border-0 rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger"><i class="fas fa-calendar-alt me-2"></i>Cardápio Mensal</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p class="text-muted small mb-4">Veja as refeições planejadas para este mês.</p>
+                <div id="monthMenuContent">
+                    <!-- Conteúdo via JS -->
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-danger" role="status"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -219,4 +256,33 @@ if (isset($_GET['teste'])) {
     setInterval(updateAppTimer, 1000);
     updateAppTimer();
     <?php endif; ?>
+
+    function openMonthModal() {
+        const modal = new bootstrap.Modal(document.getElementById('monthMenuModal'));
+        modal.show();
+        
+        // Simulação de busca do cardápio mensal
+        // Na prática, buscaríamos via fetch
+        const content = document.getElementById('monthMenuContent');
+        const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        const currentMonth = monthNames[new Date().getMonth()];
+        
+        let html = `<h6 class="fw-bold mb-3 text-uppercase small">${currentMonth} / ${new Date().getFullYear()}</h6>`;
+        
+        // Lista fictícia para demonstração
+        for(let i=1; i<=5; i++) {
+            html += `
+                <div class="p-3 mb-2 rounded-3 bg-light border-start border-3 border-danger">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fw-bold small">Quarta-feira, 1${i} / 04</span>
+                    </div>
+                    <p class="small mb-0 text-muted">Arroz, Feijão, Frango Grelhado, Purê de Batata e Salada de Alface.</p>
+                </div>
+            `;
+        }
+        
+        setTimeout(() => {
+            content.innerHTML = html;
+        }, 500);
+    }
 </script>

@@ -107,7 +107,7 @@ $assetsBase = BASE_URL;
     <meta charset="UTF-8">
     <title>MERENDA - Fatec São Sebastião</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="<?= BASE_URL ?>css/style.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="<?= BASE_URL ?>public/css/style.css?v=<?= time() ?>">
 </head>
 <body class="bg-light">
 
@@ -148,6 +148,6 @@ if (!isset($_SESSION['user_id']) && $page !== 'login') {
 ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="<?= BASE_URL ?>js/main.js"></script>
+    <script src="<?= BASE_URL ?>public/js/main.js"></script>
 </body>
 </html>

@@ -15,7 +15,7 @@ $authUrl = "https://login.microsoftonline.com/" . MS_TENANT_ID . "/oauth2/v2.0/a
         <div class="col-lg-6 d-none d-lg-flex flex-column justify-content-center align-items-center bg-fatec-gray text-white p-5 border-end border-5 border-danger">
             <div class="animated-fade text-center">
                 <!-- Logo Branco para fundo escuro -->
-                <img src="<?= BASE_URL ?>img/logotipo.png" alt="Fatec Logo" class="img-fluid mb-4" style="max-width: 400px;">
+                <img src="<?= BASE_URL ?>public/img/logotipo.png" alt="Fatec Logo" class="img-fluid mb-4" style="max-width: 400px;">
                 <h1 class="display-4 fatec-title">Sistema Merenda</h1>
                 <p class="lead">Controle de Refeições e Cardápio Digital</p>
             </div>
@@ -25,7 +25,7 @@ $authUrl = "https://login.microsoftonline.com/" . MS_TENANT_ID . "/oauth2/v2.0/a
         <div class="col-lg-6 d-flex align-items-center justify-content-center bg-white">
             <div class="p-4 p-md-5 w-100" style="max-width: 500px;">
                 <div class="text-center mb-5 d-lg-none">
-                     <img src="<?= BASE_URL ?>img/logotipo.png" alt="Fatec Logo" class="img-fluid mb-3" style="max-width: 250px;">
+                     <img src="<?= BASE_URL ?>public/img/logotipo.png" alt="Fatec Logo" class="img-fluid mb-3" style="max-width: 250px;">
                 </div>
                 
                 <?php if (isset($_GET['error']) && $_GET['error'] === 'unauthorized'): ?>
@@ -65,7 +65,7 @@ $authUrl = "https://login.microsoftonline.com/" . MS_TENANT_ID . "/oauth2/v2.0/a
                 <div class="card card-fatec border-0 bg-light">
                     <div class="card-body p-4">
                         <h5 class="card-title h6 mb-3">Acesso Cozinha</h5>
-                        <form action="<?= BASE_URL ?>post_login_cozinha.php" method="POST">
+                        <form action="<?= BASE_URL ?>public/post_login_cozinha.php" method="POST">
                             <div class="mb-3">
                                 <label class="form-label small fw-bold">Usuário</label>
                                 <div class="input-group">
