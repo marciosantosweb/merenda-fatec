@@ -28,28 +28,35 @@ jobs:
       - name: Configurar Projeto e Injetar Regras
         working-directory: mobile_app
         run: |
-          # 1. Recriar estrutura Android/iOS (Garante que os arquivos existam)
+          # 1. Recriar estrutura Android/iOS
           flutter create . --platforms=android,ios
           flutter pub get
           
-          # 2. Localizar arquivos para injeção
+          # 2. Localizar arquivos
           MANIFEST_PATH=$(find android -name "AndroidManifest.xml" | grep "main" | head -n 1)
           APP_GRADLE_PATH=$(find android -name "build.gradle" | grep "app" | head -n 1)
           
-          echo "Manifest encontrado em: $MANIFEST_PATH"
-          echo "App Gradle encontrado em: $APP_GRADLE_PATH"
+          echo "Manifest: $MANIFEST_PATH"
+          echo "Gradle: $APP_GRADLE_PATH"
           
-          # 3. Injetar URL Scheme no AndroidManifest
-          if [ -n "$MANIFEST_PATH" ]; then
-            sed -i 's|</activity>|  <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="msauth.com.rango.fatec" />\n            </intent-filter>\n        </activity>|' "$MANIFEST_PATH"
+          # 3. Injetar Regras com Perl (Muito mais confiável que sed para blocos)
+          if [ -n "$APP_GRADLE_PATH" ]; then
+            # Habilitar coreLibraryDesugaringEnabled true dentro de compileOptions
+            perl -i -pe 's/compileOptions \{/compileOptions \{\n        coreLibraryDesugaringEnabled true/g' "$APP_GRADLE_PATH"
+            
+            # Adicionar a dependência de desugaring dentro de dependencies
+            perl -i -pe 's/dependencies \{/dependencies \{\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.3"/g' "$APP_GRADLE_PATH"
+            
+            # Forçar SDK 34
+            perl -i -pe 's/compileSdkVersion .*/compileSdkVersion 34/g' "$APP_GRADLE_PATH"
+            perl -i -pe 's/targetSdkVersion .*/targetSdkVersion 34/g' "$APP_GRADLE_PATH"
+            
+            echo "--- CONTEÚDO DO GRADLE APÓS INJEÇÃO ---"
+            cat "$APP_GRADLE_PATH"
           fi
           
-          # 4. Injetar Desugaring e SDK no build.gradle
-          if [ -n "$APP_GRADLE_PATH" ]; then
-            sed -i 's/compileOptions {/compileOptions {\n        coreLibraryDesugaringEnabled true/' "$APP_GRADLE_PATH"
-            sed -i 's/dependencies {/dependencies {\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.3"/' "$APP_GRADLE_PATH"
-            sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/' "$APP_GRADLE_PATH"
-            sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/' "$APP_GRADLE_PATH"
+          if [ -n "$MANIFEST_PATH" ]; then
+            perl -i -pe 's/<\/activity>/  <intent-filter>\n                <action android:name="android.intent.action.VIEW" \/>\n                <category android:name="android.intent.category.DEFAULT" \/>\n                <category android:name="android.intent.category.BROWSABLE" \/>\n                <data android:scheme="msauth.com.rango.fatec" \/>\n            <\/intent-filter>\n        <\/activity>/g' "$MANIFEST_PATH"
           fi
 
       - name: Gerando Ícone do App
