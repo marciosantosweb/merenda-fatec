@@ -24,7 +24,14 @@ require_once ROOT_PATH . 'app/Core/Database.php';
 
 use App\Core\Database;
 
+// 4. CONFIGURAÇÃO GLOBAL DE SESSÃO
 if (session_status() === PHP_SESSION_NONE) {
+    $currentPath = parse_url(BASE_URL, PHP_URL_PATH);
+    $rootPath = str_replace('public/', '', $currentPath);
+    session_set_cookie_params([
+        'path' => $rootPath,
+        'samesite' => 'Lax'
+    ]);
     session_start();
 }
 

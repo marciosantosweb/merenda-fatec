@@ -21,7 +21,16 @@ define('ROOT_PATH', $root);
 require_once ROOT_PATH . 'config/config.php';
 require_once ROOT_PATH . 'app/Core/Database.php';
 
-if (session_status() === PHP_SESSION_NONE) session_start();
+// Configuração Global de Sessão (Alcance total do projeto)
+if (session_status() === PHP_SESSION_NONE) {
+    $currentPath = parse_url(BASE_URL, PHP_URL_PATH);
+    $rootPath = str_replace('public/', '', $currentPath);
+    session_set_cookie_params([
+        'path' => $rootPath,
+        'samesite' => 'Lax'
+    ]);
+    session_start();
+}
 
 // --- BLINDAGEM DE SEGURANÇA ADMIN ---
 // Constantemente verifica se uma sessão ativa de admin ainda corresponde ao e-mail autorizado
