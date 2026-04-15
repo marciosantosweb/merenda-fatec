@@ -35,10 +35,19 @@ jobs:
         working-directory: mobile_app
         run: dart run flutter_launcher_icons
 
-      - name: Injetar URL Scheme no AndroidManifest
+      - name: Injetar URL Scheme e Desugaring no build.gradle
         working-directory: mobile_app
         run: |
+          # Injetar URL Scheme no AndroidManifest
           sed -i 's|</activity>|  <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="msauth.com.rango.fatec" />\n            </intent-filter>\n        </activity>|' android/app/src/main/AndroidManifest.xml
+          
+          # Habilitar Desugaring no build.gradle (necessário para flutter_local_notifications 17+)
+          sed -i 's/compileOptions {/compileOptions {\n        coreLibraryDesugaringEnabled true/' android/app/build.gradle
+          sed -i 's/dependencies {/dependencies {\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.3"/' android/app/build.gradle
+          
+          # Garantir que o compileSdkVersion seja pelo menos 34
+          sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 34/' android/app/build.gradle
+          sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/' android/app/build.gradle
 
       - name: Construindo o APK Oficial
         working-directory: mobile_app
