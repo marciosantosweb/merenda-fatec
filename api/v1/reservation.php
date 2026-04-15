@@ -29,19 +29,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($action === 'delete') {
             $stmt = $db->prepare("DELETE FROM reservations WHERE user_id = ? AND date = ?");
             $stmt->execute([$userId, $today]);
+            
+            // Registrar log
+            $logStmt = $db->prepare("INSERT INTO activity_log (user_id, action, details) VALUES (?, ?, ?)");
+            $logStmt->execute([$userId, 'Cancelamento', 'Cancelou a reserva para hoje']);
+
             echo json_encode([
                 'success' => true,
                 'message' => 'Reserva cancelada!',
                 'date' => $today
             ]);
         } else {
-            // Upsert da reserva
+            // Verificar se já existia para decidir a mensagem do log
+            $checkStmt = $db->prepare("SELECT id FROM reservations WHERE user_id = ? AND date = ?");
+            $checkStmt->execute([$userId, $today]);
+            $isUpdate = $checkStmt->fetch();
+
             $stmt = $db->prepare("
                 INSERT INTO reservations (user_id, date, repetitions) 
                 VALUES (?, ?, ?)
                 ON DUPLICATE KEY UPDATE repetitions = ?, modifications = modifications + 1
             ");
             $stmt->execute([$userId, $today, $repetitions, $repetitions]);
+
+            // Registrar log
+            $actionStr = $isUpdate ? 'Alteração' : 'Confirmação';
+            $detailStr = $isUpdate ? "Alterou para $repetitions repetições" : "Confirmou janta com $repetitions repetições";
+            
+            $logStmt = $db->prepare("INSERT INTO activity_log (user_id, action, details) VALUES (?, ?, ?)");
+            $logStmt->execute([$userId, $actionStr, $detailStr]);
+
             echo json_encode([
                 'success' => true, 
                 'message' => 'Reserva confirmada!',

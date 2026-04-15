@@ -30,23 +30,35 @@ $stmtMenu = $db->prepare("SELECT description FROM menu WHERE date = ?");
 $stmtMenu->execute([$today]);
 $menu = $stmtMenu->fetch();
 $menu_text = $menu ? $menu['description'] : 'Cardápio ainda não informado';
+
+// Buscar Logs Recentes
+$recentLogs = [];
+try {
+    $stmtLogs = $db->query("
+        SELECT l.created_at, l.action, l.details, u.name 
+        FROM activity_log l
+        JOIN users u ON l.user_id = u.id
+        ORDER BY l.created_at DESC
+        LIMIT 10
+    ");
+    $recentLogs = $stmtLogs->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    // Fallback se a tabela não existir
+    $stmtFallback = $db->prepare("
+        SELECT r.updated_at as created_at, 'Registro' as action, CONCAT('Pratos: ', (r.repetitions + 1)) as details, u.name
+        FROM reservations r
+        JOIN users u ON r.user_id = u.id
+        WHERE r.date = ?
+        ORDER BY r.updated_at DESC
+        LIMIT 10
+    ");
+    $stmtFallback->execute([$today]);
+    $recentLogs = $stmtFallback->fetchAll(PDO::FETCH_ASSOC);
+}
 ?>
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container d-flex justify-content-between align-items-center">
-        <span class="navbar-brand fatec-title d-flex align-items-center">
-            <img src="<?= BASE_URL ?>img/logotipo.png" height="35" class="me-2" style="filter: brightness(0) invert(1);" alt="Logo">
-            PAINEL COZINHA
-        </span>
-        <div class="d-flex align-items-center gap-4">
-            <span class="text-white-50 small d-none d-md-inline"><?= date('d/m/Y') ?> | <span id="clock">--:--:--</span></span>
-            <a href="<?= BASE_URL ?>cozinha/cardapio" class="btn btn-outline-light btn-sm fatec-title"><i class="fas fa-calendar-alt"></i> MENSAL</a>
-            <a href="<?= BASE_URL ?>sair" class="btn btn-outline-danger btn-sm fatec-title"><i class="fas fa-sign-out-alt"></i> SAIR</a>
-        </div>
+<?php include __DIR__ . '/partial_cozinha_menu.php'; ?>
 
-    </div>
-</nav>
-
-<div class="container mt-4">
+<div class="container pb-5">
     <?php if ($is_weekend || $calendar_event): ?>
         <div class="row min-vh-50 align-items-center justify-content-center">
             <div class="col-md-6 text-center py-5">
@@ -67,7 +79,6 @@ $menu_text = $menu ? $menu['description'] : 'Cardápio ainda não informado';
                     <div class="card-body p-4 text-center">
                         <h2 class="h5 opacity-75">Cardápio do Dia</h2>
                         <h1 class="display-5 mb-0"><?= htmlspecialchars($menu_text) ?></h1>
-                        <a href="<?= BASE_URL ?>administrador" class="btn btn-light btn-sm mt-3 fw-bold">Painel Administrador</a>
                     </div>
                 </div>
             </div>
@@ -75,7 +86,7 @@ $menu_text = $menu ? $menu['description'] : 'Cardápio ainda não informado';
             <!-- Estatísticas Diretas -->
             <div class="col-md-4 mb-4">
                 <div class="card card-fatec h-100 p-4 text-center shadow-sm">
-                    <h3 class="h6 text-muted">REFEIÇÕES (BASE)</h3>
+                    <h3 class="h6 text-muted fw-bold">REFEIÇÕES (BASE)</h3>
                     <p class="display-3 fw-bold mb-0 text-dark"><?= $total_reservas ?></p>
                     <small class="text-muted">Usuários confirmados hoje</small>
                 </div>
@@ -95,36 +106,41 @@ $menu_text = $menu ? $menu['description'] : 'Cardápio ainda não informado';
                 </div>
             </div>
 
-            <!-- Lista de confirmados -->
+            <!-- Lista de Atividades -->
             <div class="col-12">
                 <div class="card card-fatec shadow-sm">
-                    <div class="card-header bg-white py-3">
-                        <h5 class="mb-0">Histórico de Alterações (Recentes)</h5>
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-dark fw-bold"><i class="fas fa-stream me-2 text-danger"></i> Atividade Recente dos Alunos</h5>
+                        <span class="badge bg-light text-dark border">Últimos 10 registros</span>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="bg-light">
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead class="bg-light text-muted small text-uppercase">
                                     <tr>
                                         <th class="ps-4">Horário</th>
-                                        <th>Aluno</th>
-                                        <th>Ação Realizada</th>
+                                        <th>Nome do Aluno</th>
+                                        <th>Ação Efetuada</th>
+                                        <th>Detalhes do Pedido</th>
                                         <th class="text-end pe-4">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td class="ps-4">18:45</td>
-                                        <td class="fw-bold">João Silva (ADS)</td>
-                                        <td>Confirmou 2 repetições</td>
-                                        <td class="text-end pe-4"><span class="badge bg-success-subtle text-success border border-success px-3">Registrado</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="ps-4">18:42</td>
-                                        <td class="fw-bold">Maria Oliveira (Logística)</td>
-                                        <td>Alterou para 1 repetição</td>
-                                        <td class="text-end pe-4"><span class="badge bg-warning-subtle text-warning border border-warning px-3">Alterado</span></td>
-                                    </tr>
+                                    <?php if (count($recentLogs) > 0): ?>
+                                        <?php foreach ($recentLogs as $log): ?>
+                                            <tr>
+                                                <td class="ps-4 text-muted small"><?= date('H:i', strtotime($log['created_at'])) ?></td>
+                                                <td class="fw-bold"><?= htmlspecialchars($log['name']) ?></td>
+                                                <td><span class="badge bg-dark text-white rounded-pill px-3"><?= htmlspecialchars($log['action']) ?></span></td>
+                                                <td class="text-muted small"><?= htmlspecialchars($log['details']) ?></td>
+                                                <td class="text-end pe-4"><i class="fas fa-check-circle text-success" title="Sincronizado"></i></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="5" class="text-center py-5 text-muted">Nenhuma atividade registrada no aplicativo hoje.</td>
+                                        </tr>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -134,15 +150,3 @@ $menu_text = $menu ? $menu['description'] : 'Cardápio ainda não informado';
         </div>
     <?php endif; ?>
 </div>
-
-<script>
-function updateClock() {
-    const clockEl = document.getElementById('clock');
-    if (clockEl) {
-        const now = new Date();
-        clockEl.innerText = now.toLocaleTimeString('pt-BR');
-    }
-}
-setInterval(updateClock, 1000);
-updateClock();
-</script>

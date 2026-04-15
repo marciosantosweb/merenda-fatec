@@ -58,3 +58,13 @@ INSERT IGNORE INTO settings (config_key, config_value) VALUES
 
 INSERT IGNORE INTO users (name, email, role, password) VALUES 
 ('Cozinha Principal', 'cozinha', 'cozinha', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'); -- senha: password
+
+-- Tabela de Histórico de Atividades
+CREATE TABLE IF NOT EXISTS activity_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    action VARCHAR(255),
+    details TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
