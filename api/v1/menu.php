@@ -26,26 +26,17 @@ if (isset($_GET['type']) && $_GET['type'] === 'monthly') {
     $mesAtual = date('m');
     $anoAtual = date('Y');
     
-    // Buscar todos os pratos do mês
+    // Buscar todos os pratos do mês no formato [data => descrição]
     $stmt = $db->prepare("SELECT date, description FROM menu WHERE MONTH(date) = ? AND YEAR(date) = ? ORDER BY date ASC");
     $stmt->execute([$mesAtual, $anoAtual]);
-    $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $items = $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // Retorna array associativo (Map no JSON)
     
-    // Buscar dias bloqueados (Manual + IA)
-    $stmtBlocked = $db->prepare("
-        SELECT date, description FROM blocked_days WHERE MONTH(date) = ? AND YEAR(date) = ?
-        UNION
-        SELECT date, description FROM academic_calendar WHERE MONTH(date) = ? AND YEAR(date) = ?
-    ");
-    $stmtBlocked->execute([$mesAtual, $anoAtual, $mesAtual, $anoAtual]);
-    $blockedDays = $stmtBlocked->fetchAll(PDO::FETCH_KEY_PAIR);
-
+    // Retornar um objeto (Map) que contém a lista associada à chave 'menu'
     jsonResponse([
         'status' => 'success',
         'month' => (int)$mesAtual,
         'year' => (int)$anoAtual,
-        'menu' => $items,
-        'blocked_days' => (object)$blockedDays
+        'menu' => (object)$items // Garante que seja um objeto {} mesmo se vazio
     ]);
 }
 
