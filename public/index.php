@@ -106,8 +106,15 @@ $assetsBase = BASE_URL;
 // 4. VIEWS
 switch ($page) {
     case 'login': include ROOT_PATH . 'views/login.php'; break;
-    case 'cozinha': include ROOT_PATH . 'views/cozinha_dashboard.php'; break;
+    case 'cozinha': 
+        if (empty($subpage)) {
+            include ROOT_PATH . 'views/cozinha_dashboard.php';
+        } else {
+            include ROOT_PATH . "views/cozinha_{$subpage}.php";
+        }
+        break;
     case 'administrador':
+
         if (empty($subpage)) {
             include ROOT_PATH . 'views/admin_dashboard.php';
         } else {

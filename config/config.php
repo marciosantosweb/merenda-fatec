@@ -25,7 +25,7 @@ if (ENV === 'P') {
 } else {
     define('BASE_URL', 'http://localhost/MERENDA/public/');
 }
-define('ADMIN_EMAIL_API', 'f189dir@cps.sp.gov.br');
+define('ADMIN_EMAIL_API', 'marcio.santos01@cps.sp.gov.br');
 
 // Fuso Horário Brasilia (Padrão para cálculos de janta)
 date_default_timezone_set('America/Sao_Paulo');

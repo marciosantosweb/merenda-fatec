@@ -185,6 +185,116 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
+  void _showMonthlyMenu() async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.8,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_month, color: Color(0xFFB50D11)),
+                    const SizedBox(width: 12),
+                    Text(
+                      "Cardápio de ${DateFormat('MMMM', 'pt_BR').format(DateTime.now()).toUpperCase()}",
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF313131)),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: FutureBuilder<Map<String, dynamic>>(
+                  future: _apiService.getMonthlyMenu(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator(color: Color(0xFFB50D11)));
+                    }
+                    if (snapshot.hasError || snapshot.data?['status'] != 'success') {
+                      return const Center(child: Text("Erro ao carregar cardápio."));
+                    }
+
+                    final menuList = snapshot.data!['menu'] as List;
+                    final blockedDays = snapshot.data!['blocked_days'] as Map<String, dynamic>? ?? {};
+
+                    if (menuList.isEmpty) {
+                      return const Center(child: Text("Nenhum prato cadastrado para este mês."));
+                    }
+
+                    return ListView.separated(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: menuList.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final item = menuList[index];
+                        final date = DateTime.parse(item['date']);
+                        final dateStr = DateFormat('dd/MM').format(date);
+                        final dayName = DateFormat('EEEE', 'pt_BR').format(date).split('-').first;
+                        
+                        final isBlocked = blockedDays.containsKey(item['date']);
+                        final isToday = DateFormat('yyyy-MM-dd').format(DateTime.now()) == item['date'];
+
+                        return Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: isToday ? const Color(0xFFB50D11).withOpacity(0.05) : Colors.grey[50],
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(
+                              color: isToday ? const Color(0xFFB50D11) : Colors.grey[200]!,
+                              width: isToday ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Column(
+                                children: [
+                                  Text(dateStr, style: TextStyle(fontWeight: FontWeight.bold, color: isToday ? const Color(0xFFB50D11) : Colors.black87)),
+                                  Text(dayName.toUpperCase(), style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+                                ],
+                              ),
+                              const SizedBox(width: 20),
+                              Expanded(
+                                child: Text(
+                                  isBlocked ? "🚫 ${blockedDays[item['date']]}" : item['description'],
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                                    color: isBlocked ? Colors.red[700] : Colors.black87,
+                                    fontStyle: isBlocked ? FontStyle.italic : FontStyle.normal,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showEditModal() {
     int tempRepetitions = _repetitions;
     showModalBottomSheet(
@@ -498,27 +608,32 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Colors.grey[600]),
                         ),
                         const SizedBox(height: 15),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(15),
-                            border: const Border(left: BorderSide(color: Color(0xFFB50D11), width: 6)),
-                            boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 5, offset: const Offset(2, 2))
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: _isLoadingData ? const LinearProgressIndicator(color: Color(0xFFB50D11)) : Text(
-                                  _menuDescription,
-                                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Color(0xFF4A4A4A)),
+                        GestureDetector(
+                          onTap: _showMonthlyMenu,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(15),
+                              border: const Border(left: BorderSide(color: Color(0xFFB50D11), width: 6)),
+                              boxShadow: [
+                                BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 5, offset: const Offset(2, 2))
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: _isLoadingData ? const LinearProgressIndicator(color: Color(0xFFB50D11)) : Text(
+                                    _menuDescription,
+                                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Color(0xFF4A4A4A)),
+                                  ),
                                 ),
-                              ),
-                              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-                            ],
+                                const Icon(Icons.calendar_month, size: 18, color: Color(0xFFB50D11)),
+                                const SizedBox(width: 8),
+                                const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+                              ],
+                            ),
                           ),
                         ),
                       ],

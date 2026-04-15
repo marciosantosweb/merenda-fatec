@@ -3,9 +3,10 @@ import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/auth_service.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() {
-  runApp(const RangoApp());
+  initializeDateFormatting('pt_BR', null).then((_) => runApp(const RangoApp()));
 }
 
 class RangoApp extends StatelessWidget {

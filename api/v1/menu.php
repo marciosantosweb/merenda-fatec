@@ -20,6 +20,31 @@ if (!function_exists('jsonResponse')) {
 }
 
 $db = Database::getConnection();
+
+// --- CARDÁPIO MENSAL ---
+if (isset($_GET['type']) && $_GET['type'] === 'monthly') {
+    $mesAtual = date('m');
+    $anoAtual = date('Y');
+    
+    // Buscar todos os pratos do mês
+    $stmt = $db->prepare("SELECT date, description FROM menu WHERE MONTH(date) = ? AND YEAR(date) = ? ORDER BY date ASC");
+    $stmt->execute([$mesAtual, $anoAtual]);
+    $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Buscar dias bloqueados do mês para sinalizar no aplicativo
+    $stmtBlocked = $db->prepare("SELECT date, description FROM blocked_days WHERE MONTH(date) = ? AND YEAR(date) = ?");
+    $stmtBlocked->execute([$mesAtual, $anoAtual]);
+    $blockedDays = $stmtBlocked->fetchAll(PDO::FETCH_KEY_PAIR);
+
+    jsonResponse([
+        'status' => 'success',
+        'month' => (int)$mesAtual,
+        'year' => (int)$anoAtual,
+        'menu' => $items,
+        'blocked_days' => $blockedDays
+    ]);
+}
+
 $today = date('Y-m-d');
 $dayOfWeek = date('w'); // 0 (Dom) a 6 (Sab)
 

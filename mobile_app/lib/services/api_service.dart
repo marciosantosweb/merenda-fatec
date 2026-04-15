@@ -19,6 +19,19 @@ class ApiService {
     }
   }
 
+  // Buscar Cardápio Mensal
+  Future<Map<String, dynamic>> getMonthlyMenu() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/v1/menu.php?type=monthly'));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+      throw Exception('Erro ao carregar cardápio mensal');
+    } catch (e) {
+      return {'error': e.toString()};
+    }
+  }
+
   // Realizar Reserva
   Future<Map<String, dynamic>> makeReservation(int userId, int repetitions) async {
     try {

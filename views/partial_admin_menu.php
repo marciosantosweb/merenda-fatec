@@ -11,7 +11,9 @@
                 <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>administrador"><i class="fas fa-home"></i> Início</a></li>
                 <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>administrador/estatisticas"><i class="fas fa-chart-line"></i> Estatísticas</a></li>
                 <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>administrador/alunos"><i class="fas fa-users"></i> Alunos</a></li>
+                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>administrador/cardapio"><i class="fas fa-utensils"></i> Cardápio</a></li>
                 <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>administrador/calendario"><i class="fas fa-calendar-alt"></i> Calendário</a></li>
+
                 <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>administrador/notificacoes"><i class="fas fa-bell"></i> Avisos</a></li>
                 <li class="nav-item"><a class="nav-link text-danger ms-lg-3" href="<?= BASE_URL ?>sair"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
             </ul>

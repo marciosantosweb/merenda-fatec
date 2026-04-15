@@ -38,9 +38,11 @@ $menu_text = $menu ? $menu['description'] : 'Cardápio ainda não informado';
             PAINEL COZINHA
         </span>
         <div class="d-flex align-items-center gap-4">
-            <span class="text-white-50 small"><?= date('d/m/Y') ?> | <span id="clock">--:--:--</span></span>
+            <span class="text-white-50 small d-none d-md-inline"><?= date('d/m/Y') ?> | <span id="clock">--:--:--</span></span>
+            <a href="<?= BASE_URL ?>cozinha/cardapio" class="btn btn-outline-light btn-sm fatec-title"><i class="fas fa-calendar-alt"></i> MENSAL</a>
             <a href="<?= BASE_URL ?>sair" class="btn btn-outline-danger btn-sm fatec-title"><i class="fas fa-sign-out-alt"></i> SAIR</a>
         </div>
+
     </div>
 </nav>
 
