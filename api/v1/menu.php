@@ -26,17 +26,17 @@ if (isset($_GET['type']) && $_GET['type'] === 'monthly') {
     $mesAtual = date('m');
     $anoAtual = date('Y');
     
-    // Buscar todos os pratos do mês no formato [data => descrição]
+    // Buscar todos os pratos do mês no formato de lista de objetos para o Flutter
     $stmt = $db->prepare("SELECT date, description FROM menu WHERE MONTH(date) = ? AND YEAR(date) = ? ORDER BY date ASC");
     $stmt->execute([$mesAtual, $anoAtual]);
-    $items = $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // Retorna array associativo (Map no JSON)
+    $items = $stmt->fetchAll(PDO::FETCH_ASSOC); // Retorna [[ 'date' => '...', 'description' => '...' ], ...]
     
-    // Retornar um objeto (Map) que contém a lista associada à chave 'menu'
     jsonResponse([
         'status' => 'success',
         'month' => (int)$mesAtual,
         'year' => (int)$anoAtual,
-        'menu' => (object)$items // Garante que seja um objeto {} mesmo se vazio
+        'menu' => $items,
+        'blocked_days' => new stdClass() // Retorna {} para não quebrar o cast do Flutter se ele ainda tentar ler
     ]);
 }
 
