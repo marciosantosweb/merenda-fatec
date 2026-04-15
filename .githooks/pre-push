@@ -60,7 +60,7 @@ echo ""
 
 # Commita a alteração de versão
 git add "$PUBSPEC"
-git commit -m "chore: v$NEW_VERSION [skip ci]" --quiet
+git commit -m "chore: v$NEW_VERSION" --quiet
 
 echo "✅ Versão $NEW_VERSION commitada automaticamente."
 echo ""
