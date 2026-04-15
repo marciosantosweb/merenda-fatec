@@ -230,11 +230,21 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       return const Center(child: Text("Erro ao carregar cardápio."));
                     }
 
-                    final menuList = snapshot.data!['menu'] as List;
-                    final blockedDays = snapshot.data!['blocked_days'] as Map<String, dynamic>? ?? {};
+                    final menuData = snapshot.data?['menu'];
+                    final menuList = (menuData is List) ? menuData : [];
+                    final blockedDays = snapshot.data?['blocked_days'] as Map<String, dynamic>? ?? {};
 
                     if (menuList.isEmpty) {
-                      return const Center(child: Text("Nenhum prato cadastrado para este mês."));
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.restaurant_menu, size: 40, color: Colors.grey[300]),
+                            const SizedBox(height: 10),
+                            const Text("Nenhum prato cadastrado para este mês.", style: TextStyle(color: Colors.grey)),
+                          ],
+                        ),
+                      );
                     }
 
                     return ListView.separated(

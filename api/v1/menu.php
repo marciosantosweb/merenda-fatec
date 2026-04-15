@@ -23,20 +23,20 @@ $db = Database::getConnection();
 
 // --- CARDÁPIO MENSAL ---
 if (isset($_GET['type']) && $_GET['type'] === 'monthly') {
-    $mesAtual = date('m');
-    $anoAtual = date('Y');
+    $firstDay = date('Y-m-01');
+    $lastDay = date('Y-m-t');
     
-    // Buscar todos os pratos do mês no formato de lista de objetos para o Flutter
-    $stmt = $db->prepare("SELECT date, description FROM menu WHERE MONTH(date) = ? AND YEAR(date) = ? ORDER BY date ASC");
-    $stmt->execute([$mesAtual, $anoAtual]);
-    $items = $stmt->fetchAll(PDO::FETCH_ASSOC); // Retorna [[ 'date' => '...', 'description' => '...' ], ...]
+    // Buscar todos os pratos do mês via intervalo de datas (mais robusto)
+    $stmt = $db->prepare("SELECT date, description FROM menu WHERE date >= ? AND date <= ? ORDER BY date ASC");
+    $stmt->execute([$firstDay, $lastDay]);
+    $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     jsonResponse([
         'status' => 'success',
-        'month' => (int)$mesAtual,
-        'year' => (int)$anoAtual,
-        'menu' => $items,
-        'blocked_days' => new stdClass() // Retorna {} para não quebrar o cast do Flutter se ele ainda tentar ler
+        'month' => (int)date('m'),
+        'year' => (int)date('Y'),
+        'menu' => $items ?: [], // Garante lista vazia e não null
+        'blocked_days' => new stdClass()
     ]);
 }
 
