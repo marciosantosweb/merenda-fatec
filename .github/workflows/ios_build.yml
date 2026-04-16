@@ -19,7 +19,7 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Configurando o Ambiente iOS
+      - name: Configurando Ambiente
         working-directory: mobile_app
         run: |
           flutter create . --platforms=android,ios
@@ -45,4 +45,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: merenda-fatec-ios
-          path: "**/build/ios/iphonesimulator/Runner.app"
+          path: "mobile_app/build/ios/iphonesimulator/Runner.app"

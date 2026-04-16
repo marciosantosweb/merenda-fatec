@@ -25,39 +25,23 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Configurando o Ambiente Android
+      - name: Preparar Ambiente
         working-directory: mobile_app
         run: |
           flutter create . --platforms=android,ios
           flutter pub get
           
-      - name: Gerando Ícone do App
-        working-directory: mobile_app
-        run: dart run flutter_launcher_icons
+          # Injetar Login Microsoft
+          sed -i 's|</activity>|  <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="msauth.com.rango.fatec" />\n            </intent-filter>\n        </activity>|' android/app/src/main/AndroidManifest.xml
 
-      - name: Corrigir Ambiguidade de Biblioteca (Patch via Gradle)
+      - name: Corrigir Erro de Notificações
         working-directory: mobile_app
         run: |
-          # Em vez de sed, vamos forçar uma configuração no nível do projeto
-          # que o Gradle aplicará a todas as bibliotecas.
-          echo "subprojects {
-              afterEvaluate { project ->
-                  if (project.hasProperty('android')) {
-                      project.android {
-                          if (project.name == 'flutter_local_notifications') {
-                              compileOptions {
-                                  sourceCompatibility JavaVersion.VERSION_1_8
-                                  targetCompatibility JavaVersion.VERSION_1_8
-                              }
-                          }
-                      }
-                  }
-              }
-          }" >> android/build.gradle
-
-      - name: Construindo o APK Oficial
-        working-directory: mobile_app
-        run: flutter build apk --release --no-tree-shake-icons
+          # Patch cirúrgico no fonte da biblioteca para evitar ambiguidades no Java 17
+          LIB_FILE=$(find /home/runner/.pub-cache -name "FlutterLocalNotificationsPlugin.java" | grep "flutter_local_notifications" | head -n 1)
+          if [ -n "$LIB_FILE" ]; then
+            sed -i 's/bigLargeIcon(null)/bigLargeIcon((Bitmap)null)/g' "$LIB_FILE"
+          fi
 
       - name: Gerando Ícone do App
         working-directory: mobile_app
@@ -71,4 +55,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: merenda-fatec-android
-          path: "**/build/app/outputs/flutter-apk/app-release.apk"
+          path: "mobile_app/build/app/outputs/flutter-apk/app-release.apk"
