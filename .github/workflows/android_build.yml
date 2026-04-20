@@ -25,19 +25,23 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Preparar Ambiente
+      - name: Criar Pastas de Plataforma
         working-directory: mobile_app
         run: |
           flutter create . --platforms=android,ios
           flutter pub get
-          
-          # Injetar Login Microsoft
-          sed -i 's|</activity>|  <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="msauth.com.rango.fatec" />\n            </intent-filter>\n        </activity>|' android/app/src/main/AndroidManifest.xml
+
+      - name: Injetar Login Microsoft
+        working-directory: mobile_app
+        run: |
+          # Usando um método mais seguro para editar o XML
+          MANIFEST_FILE="android/app/src/main/AndroidManifest.xml"
+          INTENT_FILTER='<intent-filter><action android:name="android.intent.action.VIEW" /><category android:name="android.intent.category.DEFAULT" /><category android:name="android.intent.category.BROWSABLE" /><data android:scheme="msauth.com.rango.fatec" /></intent-filter>'
+          sed -i "s|</activity>|$INTENT_FILTER </activity>|g" "$MANIFEST_FILE"
 
       - name: Corrigir Erro de Notificações
         working-directory: mobile_app
         run: |
-          # Patch cirúrgico no fonte da biblioteca para evitar ambiguidades no Java 17
           LIB_FILE=$(find /home/runner/.pub-cache -name "FlutterLocalNotificationsPlugin.java" | grep "flutter_local_notifications" | head -n 1)
           if [ -n "$LIB_FILE" ]; then
             sed -i 's/bigLargeIcon(null)/bigLargeIcon((Bitmap)null)/g' "$LIB_FILE"

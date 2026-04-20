@@ -19,23 +19,24 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Configurando Ambiente
+      - name: Criar Pastas de Plataforma
         working-directory: mobile_app
         run: |
           flutter create . --platforms=android,ios
           flutter pub get
 
-      - name: Gerando Ícone do App
-        working-directory: mobile_app
-        run: dart run flutter_launcher_icons
-
       - name: Injetar URL Scheme no Info.plist
         working-directory: mobile_app
         run: |
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes array" ios/Runner/Info.plist
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0 dict" ios/Runner/Info.plist
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" ios/Runner/Info.plist
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string msauth.com.rango.fatec" ios/Runner/Info.plist
+          # Usando PlistBuddy para injetar o login da Microsoft de forma segura
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes array" ios/Runner/Info.plist || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0 dict" ios/Runner/Info.plist || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" ios/Runner/Info.plist || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string msauth.com.rango.fatec" ios/Runner/Info.plist || true
+
+      - name: Gerando Ícone do App
+        working-directory: mobile_app
+        run: dart run flutter_launcher_icons
 
       - name: Construindo o App iOS (Simulador)
         working-directory: mobile_app
