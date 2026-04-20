@@ -1,62 +1,27 @@
 name: Gerar Build Android Merenda
-
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
-
 jobs:
   build:
-    name: Ativando robô Android
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Baixando o Código
-        uses: actions/checkout@v4
-
-      - name: Configurando o Java
-        uses: actions/setup-java@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
-
-      - name: Instalando o Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-
-      - name: Criar Pastas de Plataforma
+      - name: Build
         working-directory: mobile_app
         run: |
           flutter create . --platforms=android,ios
           flutter pub get
-
-      - name: Injetar Login Microsoft
-        working-directory: mobile_app
-        run: |
-          # Usando um método mais seguro para editar o XML
-          MANIFEST_FILE="android/app/src/main/AndroidManifest.xml"
-          INTENT_FILTER='<intent-filter><action android:name="android.intent.action.VIEW" /><category android:name="android.intent.category.DEFAULT" /><category android:name="android.intent.category.BROWSABLE" /><data android:scheme="msauth.com.rango.fatec" /></intent-filter>'
-          sed -i "s|</activity>|$INTENT_FILTER </activity>|g" "$MANIFEST_FILE"
-
-      - name: Corrigir Erro de Notificações
-        working-directory: mobile_app
-        run: |
-          LIB_FILE=$(find /home/runner/.pub-cache -name "FlutterLocalNotificationsPlugin.java" | grep "flutter_local_notifications" | head -n 1)
-          if [ -n "$LIB_FILE" ]; then
-            sed -i 's/bigLargeIcon(null)/bigLargeIcon((Bitmap)null)/g' "$LIB_FILE"
-          fi
-
-      - name: Gerando Ícone do App
-        working-directory: mobile_app
-        run: dart run flutter_launcher_icons
-
-      - name: Construindo o APK Oficial
-        working-directory: mobile_app
-        run: flutter build apk --release --no-tree-shake-icons
-
-      - name: Disponibilizar APK
-        uses: actions/upload-artifact@v4
+          flutter build apk --release --no-tree-shake-icons
+      - uses: actions/upload-artifact@v4
         with:
           name: merenda-fatec-android
-          path: "**/app-release.apk"
+          path: mobile_app/build/app/outputs/flutter-apk/app-release.apk

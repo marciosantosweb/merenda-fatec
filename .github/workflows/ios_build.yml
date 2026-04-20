@@ -1,49 +1,23 @@
 name: Gerar Build iOS Merenda
-
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
-
 jobs:
   build:
-    name: Ativando robô iOS
     runs-on: macos-latest
-    
     steps:
-      - name: Baixando o Código
-        uses: actions/checkout@v4
-
-      - name: Instalando o Flutter
-        uses: subosito/flutter-action@v2
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-
-      - name: Criar Pastas de Plataforma
+      - name: Build
         working-directory: mobile_app
         run: |
           flutter create . --platforms=android,ios
           flutter pub get
-
-      - name: Injetar URL Scheme no Info.plist
-        working-directory: mobile_app
-        run: |
-          # Usando PlistBuddy para injetar o login da Microsoft de forma segura
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes array" ios/Runner/Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0 dict" ios/Runner/Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" ios/Runner/Info.plist || true
-          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string msauth.com.rango.fatec" ios/Runner/Info.plist || true
-
-      - name: Gerando Ícone do App
-        working-directory: mobile_app
-        run: dart run flutter_launcher_icons
-
-      - name: Construindo o App iOS (Simulador)
-        working-directory: mobile_app
-        run: flutter build ios --simulator --no-tree-shake-icons
-
-      - name: Disponibilizar App para Download
-        uses: actions/upload-artifact@v4
+          flutter build ios --simulator --no-tree-shake-icons
+      - uses: actions/upload-artifact@v4
         with:
           name: merenda-fatec-ios
-          path: "**/Runner.app"
+          path: mobile_app/build/ios/iphonesimulator/Runner.app
