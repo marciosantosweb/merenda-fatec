@@ -20,7 +20,7 @@ callback_activity = """
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="msauth.com.rango.fatec" />
+                <data android:scheme="msauth.com.rango.fatec" android:host="auth" />
             </intent-filter>
         </activity>
 """
