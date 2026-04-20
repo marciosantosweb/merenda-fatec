@@ -31,6 +31,20 @@ jobs:
           if [ -n "$LIB_FILE" ]; then
             sed -i 's/bigLargeIcon(null)/bigLargeIcon((Bitmap)null)/g' "$LIB_FILE"
           fi
+      - name: Enable Desugaring
+        working-directory: mobile_app
+        run: |
+          python3 - <<'EOF'
+          import re
+          path = 'android/app/build.gradle'
+          with open(path, 'r') as f:
+              c = f.read()
+          c = c.replace('compileOptions {', 'compileOptions {\n        coreLibraryDesugaringEnabled true', 1)
+          c = c.replace('dependencies {', "dependencies {\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'", 1)
+          with open(path, 'w') as f:
+              f.write(c)
+          print("build.gradle patched!")
+          EOF
       - name: Build APK
         working-directory: mobile_app
         run: flutter build apk --release --no-tree-shake-icons
