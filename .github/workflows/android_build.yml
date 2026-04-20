@@ -25,7 +25,15 @@ jobs:
         run: |
           flutter create . --platforms=android,ios
           flutter pub get
-          flutter build apk --release --no-tree-shake-icons
+      - name: Fix Notifications Bug
+        run: |
+          LIB_FILE=$(find /home/runner/.pub-cache -name "FlutterLocalNotificationsPlugin.java" | head -n 1)
+          if [ -n "$LIB_FILE" ]; then
+            sed -i 's/bigLargeIcon(null)/bigLargeIcon((Bitmap)null)/g' "$LIB_FILE"
+          fi
+      - name: Build APK
+        working-directory: mobile_app
+        run: flutter build apk --release --no-tree-shake-icons
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
