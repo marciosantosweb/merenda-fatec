@@ -14,13 +14,12 @@ callback_activity = """
         <!-- Adicionado pelo GitHub Actions para login da Microsoft via flutter_web_auth_2 -->
         <activity
             android:name="com.linusu.flutter_web_auth_2.CallbackActivity"
-            android:exported="true"
-            android:taskAffinity="">
+            android:exported="true">
             <intent-filter android:label="flutter_web_auth_2">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="msauth.com.rango.fatec" android:host="auth" />
+                <data android:scheme="msauth.com.rango.fatec" />
             </intent-filter>
         </activity>
 """
