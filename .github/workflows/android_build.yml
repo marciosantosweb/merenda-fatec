@@ -35,6 +35,9 @@ jobs:
       - name: Enable Desugaring
         working-directory: mobile_app
         run: python3 ../.github/scripts/patch_gradle.py
+      - name: Patch AndroidManifest
+        working-directory: mobile_app
+        run: python3 ../.github/scripts/patch_manifest.py
       - name: Build APK
         working-directory: mobile_app
         run: flutter build apk --release --no-tree-shake-icons
