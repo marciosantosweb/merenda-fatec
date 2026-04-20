@@ -52,10 +52,17 @@ if ($dayOfWeek == 0 || $dayOfWeek == 6) {
     ]);
 }
 
-// 2. Verificar se é Dia Bloqueado no Banco (Feriado/Emenda)
+// 2. Verificar se é Dia Bloqueado ou Feriado Acadêmico
 $stmt = $db->prepare("SELECT description FROM blocked_days WHERE date = ?");
 $stmt->execute([$today]);
 $blocked = $stmt->fetch();
+
+if (!$blocked) {
+    // Se não está em blocked_days, tenta o calendário acadêmico (alimentado pela IA)
+    $stmt = $db->prepare("SELECT description FROM academic_calendar WHERE date = ?");
+    $stmt->execute([$today]);
+    $blocked = $stmt->fetch();
+}
 
 if ($blocked) {
     jsonResponse([

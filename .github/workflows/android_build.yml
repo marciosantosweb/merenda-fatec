@@ -55,4 +55,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: merenda-fatec-android
-          path: "mobile_app/build/app/outputs/flutter-apk/app-release.apk"
+          path: "**/app-release.apk"

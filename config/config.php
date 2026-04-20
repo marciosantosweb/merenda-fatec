@@ -33,6 +33,12 @@ date_default_timezone_set('America/Sao_Paulo');
 // Chave API Serper (Dashboard: serper.dev)
 define('SERPER_API_KEY', '24673ad8f1311ea4b0f0e95e431b8acd271626f7');
 
+// Chave API OpenAI
+define('OPENAI_API_KEY', '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');
+
+// Chave API Gemini (Obrigatória para ler PDF sem erros)
+define('GEMINI_API_KEY', 'AQ.Ab8RN6Jww-X_0VVB3LIOlESdgEpU7E1eZHkr84v2SvX5GRNi0w');
+
 // Configurações Microsoft API
 define('MS_CLIENT_ID', '12154503-57fa-4498-8c9a-4e75c09abfe5');
 define('MS_TENANT_ID', 'common');
