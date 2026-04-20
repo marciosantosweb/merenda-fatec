@@ -30,6 +30,10 @@ if 'msauth.com.rango.fatec' not in content:
     # Insere antes da tag de fechamento do dict
     content = content.replace('</dict>\n</plist>', url_types + '</dict>\n</plist>', 1)
     
+    # Substitui o nome minúsculo gerado pelo flutter create
+    content = content.replace('<key>CFBundleDisplayName</key>\n\t<string>rango</string>', '<key>CFBundleDisplayName</key>\n\t<string>Rango!</string>')
+    content = content.replace('<key>CFBundleName</key>\n\t<string>rango</string>', '<key>CFBundleName</key>\n\t<string>Rango!</string>')
+    
     with open(plist_path, 'w') as f:
         f.write(content)
     print("Successfully patched Info.plist!")

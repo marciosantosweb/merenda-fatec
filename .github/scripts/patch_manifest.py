@@ -23,6 +23,9 @@ if 'msauth.com.rango.fatec' not in content:
     # Insere antes da tag de fechamento da activity principal
     content = content.replace('</activity>', intent_filter + '\n        </activity>', 1)
     
+    # Substitui o nome padrão minúsculo pelo correto com maiúscula e exclamação
+    content = content.replace('android:label="rango"', 'android:label="Rango!"')
+    
     with open(manifest_path, 'w') as f:
         f.write(content)
     print("Successfully patched AndroidManifest.xml!")

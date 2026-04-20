@@ -25,6 +25,7 @@ jobs:
         run: |
           flutter create . --platforms=android,ios
           flutter pub get
+          dart run flutter_launcher_icons
       - name: Fix Notifications Bug
         run: |
           LIB_FILE=$(find /home/runner/.pub-cache -name "FlutterLocalNotificationsPlugin.java" 2>/dev/null | head -n 1)
