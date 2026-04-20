@@ -41,8 +41,15 @@ jobs:
 
           if [ -n "$BUILD_GRADLE" ]; then
             echo "Patching $BUILD_GRADLE for desugaring"
-            sed -i '/compileOptions {/a\        coreLibraryDesugaringEnabled true' "$BUILD_GRADLE"
-            sed -i "0,/^dependencies {/s//dependencies {\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'/" "$BUILD_GRADLE"
+            if [[ "$BUILD_GRADLE" == *.kts ]]; then
+              # Kotlin DSL syntax
+              sed -i '/compileOptions {/a\        isCoreLibraryDesugaringEnabled = true' "$BUILD_GRADLE"
+              sed -i '0,/^dependencies {/s//dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")/' "$BUILD_GRADLE"
+            else
+              # Groovy DSL syntax
+              sed -i '/compileOptions {/a\        coreLibraryDesugaringEnabled true' "$BUILD_GRADLE"
+              sed -i "0,/^dependencies {/s//dependencies {\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'/" "$BUILD_GRADLE"
+            fi
           else
             echo "ERROR: build.gradle not found! Listing android folder:"
             find android -name "*.gradle*" 2>/dev/null
