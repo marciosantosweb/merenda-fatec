@@ -20,50 +20,24 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-      - name: Create and Patch
+      - name: Create Platform Files
         working-directory: mobile_app
         run: |
           flutter create . --platforms=android,ios
           flutter pub get
-
-          # Fix bigLargeIcon ambiguity (Java 17 + flutter_local_notifications)
+      - name: Fix Notifications Bug
+        run: |
           LIB_FILE=$(find /home/runner/.pub-cache -name "FlutterLocalNotificationsPlugin.java" 2>/dev/null | head -n 1)
           if [ -n "$LIB_FILE" ]; then
             sed -i 's/bigLargeIcon(null)/bigLargeIcon((Bitmap)null)/g' "$LIB_FILE"
             echo "Patched bigLargeIcon in $LIB_FILE"
           fi
-
-          # Patch build.gradle(.kts) for core library desugaring
-          python3 << 'PYEOF'
-import os, sys
-
-for root, dirs, files in os.walk('android'):
-    for fname in files:
-        if fname in ('build.gradle.kts', 'build.gradle') and os.path.basename(root) == 'app':
-            path = os.path.join(root, fname)
-            print(f"Found: {path}")
-            with open(path, 'r') as f:
-                content = f.read()
-            is_kts = path.endswith('.kts')
-            flag = 'isCoreLibraryDesugaringEnabled = true' if is_kts else 'coreLibraryDesugaringEnabled true'
-            dep = 'coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")' if is_kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'"
-            if flag not in content:
-                content = content.replace('compileOptions {', 'compileOptions {\n        ' + flag, 1)
-            if dep not in content:
-                content = content.replace('dependencies {', 'dependencies {\n    ' + dep, 1)
-            with open(path, 'w') as f:
-                f.write(content)
-            print(f"Patched {path} successfully!")
-            sys.exit(0)
-
-print("ERROR: app/build.gradle not found!")
-sys.exit(1)
-PYEOF
-
+      - name: Enable Desugaring
+        working-directory: mobile_app
+        run: python3 ../.github/scripts/patch_gradle.py
       - name: Build APK
         working-directory: mobile_app
         run: flutter build apk --release --no-tree-shake-icons
-
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
