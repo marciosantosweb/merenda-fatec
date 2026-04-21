@@ -50,7 +50,8 @@ class AuthService {
         url: authUrl,
         callbackUrlScheme: 'rangoapp',
         options: const FlutterWebAuth2Options(
-          preferEphemeralSession: true,
+          preferEphemeral: true,
+          intentFlags: ephemeralIntentFlags,
         ),
       );
 
