@@ -7,7 +7,7 @@ import 'database_helper.dart';
 const _clientId   = '12154503-57fa-4498-8c9a-4e75c09abfe5';
 const _tenantId   = 'common';
 // Redirect URI registrada no Azure para aplicativos móveis (custom scheme)
-const _redirectUri = 'msauth.com.rango.fatec://auth';
+const _redirectUri = 'rangoapp://auth';
 const _scope      = 'openid profile User.Read';
 
 /// URL base da API do servidor
@@ -46,7 +46,7 @@ class AuthService {
     try {
       final result = await FlutterWebAuth2.authenticate(
         url: authUrl,
-        callbackUrlScheme: 'msauth.com.rango.fatec',
+        callbackUrlScheme: 'rangoapp',
       );
 
       final uri = Uri.parse(result.replaceFirst('#', '?'));
