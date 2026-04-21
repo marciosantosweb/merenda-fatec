@@ -35,18 +35,23 @@ class AuthService {
 
   /// Abre o browser OAuth da Microsoft e retorna o access_token.
   Future<String?> _loginWithMicrosoft() async {
+    final state = DateTime.now().millisecondsSinceEpoch.toString();
     final authUrl =
         'https://login.microsoftonline.com/$_tenantId/oauth2/v2.0/authorize'
         '?client_id=$_clientId'
         '&response_type=token'
         '&redirect_uri=${Uri.encodeComponent(_redirectUri)}'
         '&scope=${Uri.encodeComponent(_scope)}'
+        '&state=$state'
         '&response_mode=fragment';
 
     try {
       final result = await FlutterWebAuth2.authenticate(
         url: authUrl,
         callbackUrlScheme: 'rangoapp',
+        options: const FlutterWebAuth2Options(
+          preferEphemeralSession: true,
+        ),
       );
 
       final uri = Uri.parse(result.replaceFirst('#', '?'));
