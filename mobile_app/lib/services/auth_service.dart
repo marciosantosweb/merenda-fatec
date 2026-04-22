@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:http/http.dart' as http;
 import 'database_helper.dart';
@@ -8,10 +9,17 @@ const _clientId   = '12154503-57fa-4498-8c9a-4e75c09abfe5';
 const _tenantId   = 'common';
 // Redirect URI registrada no Azure para aplicativos móveis (custom scheme)
 const _redirectUri = 'msauth://com.example.rango/2xH%2BZpa%2BeNoE3G8dG1mBYsFEU%2Bw%3D';
-const _scope      = 'openid profile User.Read';
+const _scope      = 'openid profile User.Read offline_access';
 
 /// URL base da API do servidor
 const _apiBase = 'https://www.etecsaosebastiao.com.br/fatec/merenda/api';
+
+/// Gera uma string aleatória para PKCE
+String _generateCodeVerifier() {
+  final random = Random.secure();
+  final values = List<int>.generate(64, (i) => random.nextInt(256));
+  return base64UrlEncode(values).replaceAll('=', '');
+}
 
 class AuthService {
   final DatabaseHelper _db = DatabaseHelper();
@@ -31,22 +39,25 @@ class AuthService {
     return session;
   }
 
-  // ─── Login via Microsoft OAuth2 ──────────────────────────────────────────
+  // ─── Login via Microsoft OAuth2 com PKCE ─────────────────────────────────
 
   /// Abre o browser OAuth da Microsoft e retorna o access_token.
   Future<String?> _loginWithMicrosoft() async {
-    final state = DateTime.now().millisecondsSinceEpoch.toString();
-    final nonce = DateTime.now().microsecondsSinceEpoch.toString(); // Requisito CPS/Microsoft
-    
+    // PKCE: Gera um code_verifier e usa como code_challenge
+    // (sem transformação SHA256 pois usamos plain, mais simples e suportado)
+    final codeVerifier = _generateCodeVerifier();
+    final state = _generateCodeVerifier().substring(0, 16);
+
     final authUrl =
         'https://login.microsoftonline.com/$_tenantId/oauth2/v2.0/authorize'
         '?client_id=$_clientId'
-        '&response_type=token'
+        '&response_type=code'
         '&redirect_uri=${Uri.encodeComponent(_redirectUri)}'
         '&scope=${Uri.encodeComponent(_scope)}'
         '&state=$state'
-        '&nonce=$nonce'
-        '&response_mode=fragment';
+        '&code_challenge=$codeVerifier'
+        '&code_challenge_method=plain'
+        '&prompt=select_account';
 
     try {
       final result = await FlutterWebAuth2.authenticate(
@@ -57,10 +68,41 @@ class AuthService {
         ),
       );
 
-      final uri = Uri.parse(result.replaceFirst('#', '?'));
-      return uri.queryParameters['access_token'];
+      final uri = Uri.parse(result);
+      final code = uri.queryParameters['code'];
+
+      if (code == null) return null;
+
+      // Troca o code pelo access_token usando PKCE (sem client_secret)
+      return await _exchangeCodeForToken(code, codeVerifier);
     } catch (e) {
-      return null; // usuário cancelou
+      return null;
+    }
+  }
+
+  /// Troca o authorization code pelo Access Token via PKCE (sem client_secret).
+  Future<String?> _exchangeCodeForToken(String code, String codeVerifier) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://login.microsoftonline.com/$_tenantId/oauth2/v2.0/token'),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'client_id': _clientId,
+          'grant_type': 'authorization_code',
+          'code': code,
+          'redirect_uri': _redirectUri,
+          'scope': _scope,
+          'code_verifier': codeVerifier,
+        },
+      ).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['access_token'];
+      }
+      return null;
+    } catch (e) {
+      return null;
     }
   }
 
@@ -84,11 +126,6 @@ class AuthService {
   // ─── Fluxo principal de login ─────────────────────────────────────────────
 
   /// Executa o fluxo completo: OAuth Microsoft → validação API → salva sessão.
-  /// Retorna um Map com:
-  ///   - 'success': bool
-  ///   - 'blocked': bool (opcional)
-  ///   - 'message': String (em caso de erro)
-  ///   - 'user': Map (em caso de sucesso)
   Future<Map<String, dynamic>> signIn() async {
     // 1. Abre autenticação Microsoft
     final accessToken = await _loginWithMicrosoft();
