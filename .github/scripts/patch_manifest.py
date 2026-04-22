@@ -20,7 +20,7 @@ callback_activity = """
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="msauth" android:host="com.example.rango" android:pathPrefix="/" />
+                <data android:scheme="msauth" android:host="com.example.rango" />
             </intent-filter>
         </activity>
 """

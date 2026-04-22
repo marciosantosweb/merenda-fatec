@@ -36,6 +36,8 @@ class AuthService {
   /// Abre o browser OAuth da Microsoft e retorna o access_token.
   Future<String?> _loginWithMicrosoft() async {
     final state = DateTime.now().millisecondsSinceEpoch.toString();
+    final nonce = DateTime.now().microsecondsSinceEpoch.toString(); // Requisito CPS/Microsoft
+    
     final authUrl =
         'https://login.microsoftonline.com/$_tenantId/oauth2/v2.0/authorize'
         '?client_id=$_clientId'
@@ -43,6 +45,7 @@ class AuthService {
         '&redirect_uri=${Uri.encodeComponent(_redirectUri)}'
         '&scope=${Uri.encodeComponent(_scope)}'
         '&state=$state'
+        '&nonce=$nonce'
         '&response_mode=fragment';
 
     try {
