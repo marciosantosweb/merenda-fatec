@@ -50,7 +50,7 @@ class AuthService {
         url: authUrl,
         callbackUrlScheme: 'msauth',
         options: const FlutterWebAuth2Options(
-          preferEphemeral: true,
+          preferEphemeral: false,
         ),
       );
 
