@@ -19,7 +19,7 @@ callback_activity = """
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="rangoapp" android:host="auth" />
+                <data android:scheme="com.example.rango" android:host="auth" />
             </intent-filter>
         </activity>
 """
