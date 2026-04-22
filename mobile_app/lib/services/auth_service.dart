@@ -8,7 +8,7 @@ import 'database_helper.dart';
 const _clientId   = '12154503-57fa-4498-8c9a-4e75c09abfe5';
 const _tenantId   = 'common';
 // Redirect URI registrada no Azure para aplicativos móveis (custom scheme)
-const _redirectUri = 'msauth://com.example.rango/2xH%2BZpa%2BeNoE3G8dG1mBYsFEU%2Bw%3D';
+const _redirectUri = 'msauth://com.example.rango/2xH+Zpa+eNoE3G8dG1mBYsFEU+w=';
 const _scope      = 'openid profile User.Read offline_access';
 
 /// URL base da API do servidor
