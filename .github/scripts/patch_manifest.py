@@ -10,24 +10,18 @@ if not os.path.exists(manifest_path):
 with open(manifest_path, 'r') as f:
     content = f.read()
 
-callback_activity = """
-        <!-- Adicionado pelo GitHub Actions para login da Microsoft via flutter_web_auth_2 -->
-        <activity
-            android:name="com.linusu.flutter_web_auth_2.CallbackActivity"
-            android:exported="true"
-            android:launchMode="singleTask">
-            <intent-filter android:label="flutter_web_auth_2">
+intent_filter = """
+            <intent-filter android:label="app_links_auth">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="msauth" android:host="com.example.rango" />
             </intent-filter>
-        </activity>
-"""
+        </activity>"""
 
-if 'com.linusu.flutter_web_auth_2.CallbackActivity' not in content:
-    # Insere antes da tag de fechamento da application
-    content = content.replace('</application>', callback_activity + '    </application>', 1)
+if 'android:label="app_links_auth"' not in content:
+    # Insere antes do fechamento da MainActivity (buscando pelo seu fechamento padrão)
+    content = content.replace('</activity>', intent_filter, 1)
     
     # Substitui o nome padrão minúsculo pelo correto com maiúscula e exclamação
     content = content.replace('android:label="rango"', 'android:label="Rango!"')

@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
+import 'package:app_links/app_links.dart';
 import 'database_helper.dart';
 
 /// Credenciais Microsoft (espelho do config.php do servidor)
@@ -23,10 +25,16 @@ String _generateCodeVerifier() {
 
 class AuthService {
   final DatabaseHelper _db = DatabaseHelper();
+  final _appLinks = AppLinks();
+  StreamSubscription<Uri>? _linkSubscription;
+
+  AuthService() {
+    // Configura o listener de deep links silenciosamente ao iniciar o servico
+    _appLinks.uriLinkStream.listen((uri) {}).cancel(); // Initialize stream
+  }
 
   // ─── Verificar sessão local ────────────────────────────────────────────────
 
-  /// Retorna o usuário salvo localmente se ainda não expirou (30 dias).
   Future<Map<String, dynamic>?> getLocalSession() async {
     final session = await _db.getSession();
     if (session == null) return null;
@@ -39,48 +47,71 @@ class AuthService {
     return session;
   }
 
-  // ─── Login via Microsoft OAuth2 com PKCE ─────────────────────────────────
+  // ─── Login via Microsoft OAuth2 com Navegador Externo ────────────────────
 
-  /// Abre o browser OAuth da Microsoft e retorna o access_token.
   Future<String?> _loginWithMicrosoft() async {
-    // PKCE: Gera um code_verifier e usa como code_challenge
-    // (sem transformação SHA256 pois usamos plain, mais simples e suportado)
     final codeVerifier = _generateCodeVerifier();
     final state = _generateCodeVerifier().substring(0, 16);
+    final nonce = DateTime.now().microsecondsSinceEpoch.toString();
 
-    final authUrl =
+    final authUrl = Uri.parse(
         'https://login.microsoftonline.com/$_tenantId/oauth2/v2.0/authorize'
         '?client_id=$_clientId'
         '&response_type=code'
         '&redirect_uri=${Uri.encodeComponent(_redirectUri)}'
         '&scope=${Uri.encodeComponent(_scope)}'
         '&state=$state'
+        '&nonce=$nonce'
         '&code_challenge=$codeVerifier'
         '&code_challenge_method=plain'
-        '&prompt=select_account';
+        '&prompt=select_account'
+        '&login_hint=marcio.santos01@cps.sp.gov.br'
+    );
+
+    // Cria um Completer para aguardar a resposta via Deep Link
+    final completer = Completer<String?>();
+
+    // Escuta os links que o app receber
+    _linkSubscription = _appLinks.uriLinkStream.listen((Uri? uri) async {
+      if (uri != null && uri.scheme == 'msauth') {
+        final code = uri.queryParameters['code'];
+        // Trocamos o código pelo token
+        if (code != null && !completer.isCompleted) {
+          final token = await _exchangeCodeForToken(code, codeVerifier);
+          completer.complete(token);
+        } else if (!completer.isCompleted) {
+          completer.complete(null);
+        }
+      }
+    });
 
     try {
-      final result = await FlutterWebAuth2.authenticate(
-        url: authUrl,
-        callbackUrlScheme: 'msauth',
-        options: const FlutterWebAuth2Options(
-          preferEphemeral: false,
-        ),
+      // Abre o Chrome VERDADEIRO externo, garantindo máxima confiabilidade.
+      final launched = await launchUrl(
+        authUrl,
+        mode: LaunchMode.externalApplication,
       );
 
-      final uri = Uri.parse(result);
-      final code = uri.queryParameters['code'];
-
-      if (code == null) return null;
-
-      // Troca o code pelo access_token usando PKCE (sem client_secret)
-      return await _exchangeCodeForToken(code, codeVerifier);
+      if (!launched && !completer.isCompleted) {
+         completer.complete(null);
+         return null;
+      }
     } catch (e) {
-      return null;
+      if (!completer.isCompleted) completer.complete(null);
     }
+
+    // Espera até 60 segundos pelo retorno do navegador
+    final result = await completer.future.timeout(
+      const Duration(seconds: 60),
+      onTimeout: () => null,
+    );
+    
+    // Limpa a escuta após retornar
+    _linkSubscription?.cancel();
+    
+    return result;
   }
 
-  /// Troca o authorization code pelo Access Token via PKCE (sem client_secret).
   Future<String?> _exchangeCodeForToken(String code, String codeVerifier) async {
     try {
       final response = await http.post(
@@ -108,7 +139,6 @@ class AuthService {
 
   // ─── Validar token com a API PHP ──────────────────────────────────────────
 
-  /// Envia o access_token da Microsoft para a API, que valida e retorna o perfil.
   Future<Map<String, dynamic>> _validateWithServer(String accessToken) async {
     try {
       final response = await http.post(
@@ -125,19 +155,15 @@ class AuthService {
 
   // ─── Fluxo principal de login ─────────────────────────────────────────────
 
-  /// Executa o fluxo completo: OAuth Microsoft → validação API → salva sessão.
   Future<Map<String, dynamic>> signIn() async {
-    // 1. Abre autenticação Microsoft
     final accessToken = await _loginWithMicrosoft();
     if (accessToken == null) {
-      return {'success': false, 'message': 'Login cancelado pelo usuário.'};
+      return {'success': false, 'message': 'Login falhou ou foi cancelado no navegador.'};
     }
 
-    // 2. Valida com servidor PHP e verifica status no banco
     final result = await _validateWithServer(accessToken);
 
     if (result['success'] == true) {
-      // 3. Salva sessão local por 30 dias
       final user = result['user'] as Map<String, dynamic>;
       final expiresAt = DateTime.now().add(const Duration(days: 30));
       await _db.saveSession({
@@ -153,8 +179,6 @@ class AuthService {
 
     return result;
   }
-
-  // ─── Logout ───────────────────────────────────────────────────────────────
 
   Future<void> signOut() async {
     await _db.clearSession();
