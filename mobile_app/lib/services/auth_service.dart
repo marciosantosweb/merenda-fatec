@@ -139,7 +139,6 @@ class AuthService {
           'grant_type': 'authorization_code',
           'code': code,
           'redirect_uri': _redirectUri,
-          'scope': _scope,
           'code_verifier': codeVerifier,
         },
       ).timeout(const Duration(seconds: 30));
@@ -148,7 +147,9 @@ class AuthService {
         final data = jsonDecode(response.body);
         return data['access_token'];
       }
-      return null;
+      
+      // Se falhar, retorna o erro exato da Azure
+      return 'EXCHANGE_ERROR: ${response.statusCode} | ${response.body}';
     } catch (e) {
       return null;
     }
@@ -181,6 +182,10 @@ class AuthService {
     
     if (accessToken.startsWith('MS_ERROR:')) {
       return {'success': false, 'message': 'A Microsoft bloqueou o login:\n$accessToken'};
+    }
+    
+    if (accessToken.startsWith('EXCHANGE_ERROR:')) {
+      return {'success': false, 'message': 'O código foi gerado, mas a Microsoft recusou a troca pelo Token. Motivo:\n$accessToken'};
     }
     
     if (accessToken == 'ERRO_TROCA_TOKEN') {
