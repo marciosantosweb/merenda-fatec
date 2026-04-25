@@ -16,7 +16,7 @@ for root, dirs, files in os.walk('android'):
 
             is_kts = path.endswith('.kts')
             flag = 'isCoreLibraryDesugaringEnabled = true' if is_kts else 'coreLibraryDesugaringEnabled true'
-            dep = 'coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")' if is_kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'"
+            dep = 'coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")' if is_kts else "coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'"
 
             # Add desugaring flag inside compileOptions
             if flag not in content:
