@@ -136,6 +136,7 @@ class AuthService {
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: {
           'client_id': _clientId,
+          'client_secret': 'hFm8Q~K.8DHNPSnpQXf3LUKDNUmqYo9BdMUk_djm', // Contingência: Forçando a aceitação caso o App no Azure seja Web
           'grant_type': 'authorization_code',
           'code': code,
           'redirect_uri': _redirectUri,
