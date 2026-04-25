@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:app_links/app_links.dart';
+import 'package:crypto/crypto.dart';
 import 'database_helper.dart';
 
 /// Credenciais Microsoft (espelho do config.php do servidor)
@@ -19,8 +20,15 @@ const _apiBase = 'https://www.etecsaosebastiao.com.br/fatec/merenda/api';
 /// Gera uma string aleatória para PKCE
 String _generateCodeVerifier() {
   final random = Random.secure();
-  final values = List<int>.generate(64, (i) => random.nextInt(256));
-  return base64UrlEncode(values).replaceAll('=', '');
+  final values = List<int>.generate(32, (i) => random.nextInt(256));
+  return base64UrlEncode(values).replaceAll('=', '').replaceAll('+', '-').replaceAll('/', '_');
+}
+
+/// Gera o Code Challenge em S256 (Padrão ouro do Azure)
+String _generateCodeChallenge(String verifier) {
+  final bytes = utf8.encode(verifier);
+  final digest = sha256.convert(bytes);
+  return base64UrlEncode(digest.bytes).replaceAll('=', '').replaceAll('+', '-').replaceAll('/', '_');
 }
 
 class AuthService {
@@ -51,6 +59,7 @@ class AuthService {
 
   Future<String?> _loginWithMicrosoft() async {
     final codeVerifier = _generateCodeVerifier();
+    final codeChallenge = _generateCodeChallenge(codeVerifier);
     final state = _generateCodeVerifier().substring(0, 16);
     final nonce = DateTime.now().microsecondsSinceEpoch.toString();
 
@@ -62,8 +71,8 @@ class AuthService {
         '&scope=${Uri.encodeComponent(_scope)}'
         '&state=$state'
         '&nonce=$nonce'
-        '&code_challenge=$codeVerifier'
-        '&code_challenge_method=plain'
+        '&code_challenge=$codeChallenge'
+        '&code_challenge_method=S256'
         '&prompt=select_account'
         '&login_hint=marcio.santos01@cps.sp.gov.br'
     );
@@ -74,11 +83,19 @@ class AuthService {
     // Escuta os links que o app receber
     _linkSubscription = _appLinks.uriLinkStream.listen((Uri? uri) async {
       if (uri != null && uri.scheme == 'msauth') {
-        final code = uri.queryParameters['code'];
-        // Trocamos o código pelo token
+        
+        // A Azure pode devolver os parâmetros na query ou no fragment (#)
+        final params = uri.queryParameters.isNotEmpty ? uri.queryParameters : Uri.splitQueryString(uri.fragment);
+        
+        final code = params['code'];
+        final error = params['error'];
+        final errorDesc = params['error_description'];
+
         if (code != null && !completer.isCompleted) {
           final token = await _exchangeCodeForToken(code, codeVerifier);
-          completer.complete(token);
+          completer.complete(token ?? 'ERRO_TROCA_TOKEN');
+        } else if (error != null && !completer.isCompleted) {
+          completer.complete('MS_ERROR: $error - $errorDesc');
         } else if (!completer.isCompleted) {
           completer.complete(null);
         }
@@ -157,8 +174,17 @@ class AuthService {
 
   Future<Map<String, dynamic>> signIn() async {
     final accessToken = await _loginWithMicrosoft();
+    
     if (accessToken == null) {
-      return {'success': false, 'message': 'Login falhou ou foi cancelado no navegador.'};
+      return {'success': false, 'message': 'Login cancelado no navegador ou sem resposta da Microsoft.'};
+    }
+    
+    if (accessToken.startsWith('MS_ERROR:')) {
+      return {'success': false, 'message': 'A Microsoft bloqueou o login:\n$accessToken'};
+    }
+    
+    if (accessToken == 'ERRO_TROCA_TOKEN') {
+      return {'success': false, 'message': 'O código foi gerado, mas o servidor da Microsoft recusou a troca pelo Access Token.'};
     }
 
     final result = await _validateWithServer(accessToken);
